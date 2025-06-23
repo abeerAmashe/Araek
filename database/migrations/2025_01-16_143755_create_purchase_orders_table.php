@@ -30,7 +30,6 @@ return new class extends Migration
             $table->float('price_after_rabbon')->nullable();
             $table->float('price_after_rabbon_with_delivery')->nullable();
             //المبلغ المتبقي بدون التوصيل
-            $table->float('remaining_amount')->nullable();
             // المبلغ المتبقي مع التوصيل
             $table->float('remaining_amount_with_delivery')->nullable();
             $table->foreignId('branch_id')->nullable()->constrained('branchs')->cascadeOnDelete();

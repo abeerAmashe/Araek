@@ -17,65 +17,149 @@ class CartController extends Controller
 {
 
     public function addToCart2(Request $request)
-{
-    $user = auth()->user();
-    $customerId = $user->customer->id;
+    {
+        $user = auth()->user();
+        $customerId = $user->customer->id;
 
-    $requiredFields = ['item_id', 'room_id', 'customization_id', 'room_customization_id'];
-    $isValid = false;
-    foreach ($requiredFields as $field) {
-        if ($request->has($field)) {
-            $isValid = true;
-            break;
-        }
-    }
-
-    if (!$isValid) {
-        return response()->json(['message' => 'Invalid request. Missing one of item_id, room_id, customization_id, or room_customization_id'], 200);
-    }
-
-    $itemId = $request->input('item_id');
-    $roomId = $request->input('room_id');
-    $customizationId = $request->input('customization_id');
-    $roomCustomizationId = $request->input('room_customization_id');
-    $count = (int) $request->input('count', 1);
-
-    if ($count <= 0) {
-        return response()->json(['message' => 'Count must be greater than 0'], 200);
-    }
-
-    $pricePerItem = 0.00;
-    $timePerItem = 0.00;
-    $reservedNow = 0;
-    $partialTime = 0;
-
-    $cartQuery = Cart::where('customer_id', $customerId);
-
-    if ($itemId) {
-        $item = Item::find($itemId);
-        if (!$item) return response()->json(['message' => 'Item not found'], 200);
-
-        $availableCount = $item->count - $item->count_reserved;
-        $reservedNow = min($count, $availableCount);
-        $missingCount = $count - $reservedNow;
-        $partialTime = $missingCount * $item->time;
-
-        $pricePerItem = (float) $item->price;
-        $timePerItem = (float) $item->time;
-
-        if ($reservedNow > 0) {
-            $item->count_reserved += $reservedNow;
-            $item->save();
+        $requiredFields = ['item_id', 'room_id', 'customization_id', 'room_customization_id'];
+        $isValid = false;
+        foreach ($requiredFields as $field) {
+            if ($request->has($field)) {
+                $isValid = true;
+                break;
+            }
         }
 
-        $cartQuery->where('item_id', $itemId)
-            ->whereNull('room_id')
-            ->whereNull('customization_id')
-            ->whereNull('room_customization_id');
+        if (!$isValid) {
+            return response()->json(['message' => 'Invalid request. Missing one of item_id, room_id, customization_id, or room_customization_id'], 200);
+        }
 
-        $cart = $cartQuery->first();
+        $itemId = $request->input('item_id');
+        $roomId = $request->input('room_id');
+        $customizationId = $request->input('customization_id');
+        $roomCustomizationId = $request->input('room_customization_id');
+        $count = (int) $request->input('count', 1);
 
-        if ($cart) {
+        if ($count <= 0) {
+            return response()->json(['message' => 'Count must be greater than 0'], 200);
+        }
+
+        $pricePerItem = 0.00;
+        $timePerItem = 0.00;
+        $reservedNow = 0;
+        $partialTime = 0;
+
+        $cartQuery = Cart::where('customer_id', $customerId);
+
+        if ($itemId) {
+            $item = Item::find($itemId);
+            if (!$item) return response()->json(['message' => 'Item not found'], 200);
+
+            $availableCount = $item->count - $item->count_reserved;
+            $reservedNow = min($count, $availableCount);
+            $missingCount = $count - $reservedNow;
+            $partialTime = $missingCount * $item->time;
+
+            $pricePerItem = (float) $item->price;
+            $timePerItem = (float) $item->time;
+
+            if ($reservedNow > 0) {
+                $item->count_reserved += $reservedNow;
+                $item->save();
+            }
+
+            $cartQuery->where('item_id', $itemId)
+                ->whereNull('room_id')
+                ->whereNull('customization_id')
+                ->whereNull('room_customization_id');
+
+            $cart = $cartQuery->first();
+
+            if ($cart) {
+                $cart->count += $count;
+                $cart->count_reserved += $reservedNow;
+                $cart->price = $pricePerItem * $cart->count;
+                $cart->time = ($cart->count - $cart->count_reserved) * $timePerItem;
+                $cart->price_per_item = $pricePerItem;
+                $cart->time_per_item = $timePerItem;
+                $cart->available_count_at_addition = $availableCount;
+                $cart->reserved_at = now();
+                $cart->save();
+            } else {
+                $cart = Cart::create([
+                    'customer_id' => $customerId,
+                    'item_id' => $itemId,
+                    'count' => $count,
+                    'count_reserved' => $reservedNow,
+                    'time_per_item' => $timePerItem,
+                    'price_per_item' => $pricePerItem,
+                    'time' => $partialTime,
+                    'price' => $pricePerItem * $count,
+                    'available_count_at_addition' => $availableCount,
+                    'reserved_at' => now(),
+                ]);
+            }
+        } elseif ($roomId) {
+            $room = Room::with('items')->find($roomId);
+            if (!$room) return response()->json(['message' => 'Room not found'], 200);
+
+            $availableCount = $room->count - $room->count_reserved;
+            $reservedNow = min($count, $availableCount);
+            $missingCount = $count - $reservedNow;
+            $partialTime = $missingCount * $room->time;
+
+            $pricePerItem = (float) $room->price;
+            $timePerItem = (float) $room->time;
+
+            // إنشاء أو تحديث الـ cart الخاص بالغرفة
+            $cart = Cart::firstOrCreate(
+                [
+                    'customer_id' => $customerId,
+                    'room_id' => $roomId,
+                ],
+                [
+                    'count' => 0,
+                    'count_reserved' => 0,
+                    'time_per_item' => $timePerItem,
+                    'price_per_item' => $pricePerItem,
+                    'time' => 0,
+                    'price' => 0,
+                    'available_count_at_addition' => $availableCount,
+                    'reserved_at' => now(),
+                ]
+            );
+
+            if ($reservedNow > 0) {
+                $room->count_reserved += $reservedNow;
+                $room->save();
+
+                foreach ($room->items as $roomItem) {
+                    $availableItemCount = $roomItem->count - $roomItem->count_reserved;
+                    $reserveCountForItem = min($reservedNow, $availableItemCount);
+
+                    if ($reserveCountForItem > 0) {
+                        $roomItem->count_reserved += $reserveCountForItem;
+                        $roomItem->save();
+
+                        $reservation = CartItemReservation::where('cart_id', $cart->id)
+                            ->where('item_id', $roomItem->id)
+                            ->first();
+
+                        if (!$reservation) {
+                            $reservation = CartItemReservation::create([
+                                'cart_id' => $cart->id,
+                                'item_id' => $roomItem->id,
+                                'count_reserved' => $reserveCountForItem,
+                            ]);
+                        } else {
+                            $reservation->count_reserved += $reserveCountForItem;
+                            $reservation->save();
+                        }
+                    }
+                }
+            }
+
+            // تحديث بيانات السلة بعد الإضافة
             $cart->count += $count;
             $cart->count_reserved += $reservedNow;
             $cart->price = $pricePerItem * $cart->count;
@@ -85,107 +169,23 @@ class CartController extends Controller
             $cart->available_count_at_addition = $availableCount;
             $cart->reserved_at = now();
             $cart->save();
-        } else {
-            $cart = Cart::create([
-                'customer_id' => $customerId,
-                'item_id' => $itemId,
-                'count' => $count,
-                'count_reserved' => $reservedNow,
-                'time_per_item' => $timePerItem,
-                'price_per_item' => $pricePerItem,
-                'time' => $partialTime,
-                'price' => $pricePerItem * $count,
-                'available_count_at_addition' => $availableCount,
-                'reserved_at' => now(),
-            ]);
-        }
-    } elseif ($roomId) {
-        $room = Room::with('items')->find($roomId);
-        if (!$room) return response()->json(['message' => 'Room not found'], 200);
-
-        $availableCount = $room->count - $room->count_reserved;
-        $reservedNow = min($count, $availableCount);
-        $missingCount = $count - $reservedNow;
-        $partialTime = $missingCount * $room->time;
-
-        $pricePerItem = (float) $room->price;
-        $timePerItem = (float) $room->time;
-
-        // إنشاء أو تحديث الـ cart الخاص بالغرفة
-        $cart = Cart::firstOrCreate(
-            [
-                'customer_id' => $customerId,
-                'room_id' => $roomId,
-            ],
-            [
-                'count' => 0,
-                'count_reserved' => 0,
-                'time_per_item' => $timePerItem,
-                'price_per_item' => $pricePerItem,
-                'time' => 0,
-                'price' => 0,
-                'available_count_at_addition' => $availableCount,
-                'reserved_at' => now(),
-            ]
-        );
-
-        if ($reservedNow > 0) {
-            $room->count_reserved += $reservedNow;
-            $room->save();
-
-            foreach ($room->items as $roomItem) {
-                $availableItemCount = $roomItem->count - $roomItem->count_reserved;
-                $reserveCountForItem = min($reservedNow, $availableItemCount);
-
-                if ($reserveCountForItem > 0) {
-                    $roomItem->count_reserved += $reserveCountForItem;
-                    $roomItem->save();
-
-                    $reservation = CartItemReservation::where('cart_id', $cart->id)
-                        ->where('item_id', $roomItem->id)
-                        ->first();
-
-                    if (!$reservation) {
-                        $reservation = CartItemReservation::create([
-                            'cart_id' => $cart->id,
-                            'item_id' => $roomItem->id,
-                            'count_reserved' => $reserveCountForItem,
-                        ]);
-                    } else {
-                        $reservation->count_reserved += $reserveCountForItem;
-                        $reservation->save();
-                    }
-                }
-            }
         }
 
-        // تحديث بيانات السلة بعد الإضافة
-        $cart->count += $count;
-        $cart->count_reserved += $reservedNow;
-        $cart->price = $pricePerItem * $cart->count;
-        $cart->time = ($cart->count - $cart->count_reserved) * $timePerItem;
-        $cart->price_per_item = $pricePerItem;
-        $cart->time_per_item = $timePerItem;
-        $cart->available_count_at_addition = $availableCount;
-        $cart->reserved_at = now();
-        $cart->save();
+        $cartItems = Cart::where('customer_id', $customerId)->get();
+        $totalCartPrice = $cartItems->sum('price');
+        $totalCartTime = $cartItems->sum('time');
+        $depositAmount = $totalCartPrice * 0.5;
+
+        return response()->json([
+            'message' => 'Added/Updated successfully in cart',
+            'cart' => $cart,
+            'total_time' => $totalCartTime,
+            'total_price' => $totalCartPrice,
+            'deposit' => $depositAmount,
+            'item_time' => $timePerItem,
+            'item_price' => $pricePerItem * $count,
+        ]);
     }
-
-    $cartItems = Cart::where('customer_id', $customerId)->get();
-    $totalCartPrice = $cartItems->sum('price');
-    $totalCartTime = $cartItems->sum('time');
-    $depositAmount = $totalCartPrice * 0.5;
-
-    return response()->json([
-        'message' => 'Added/Updated successfully in cart',
-        'cart' => $cart,
-        'total_time' => $totalCartTime,
-        'total_price' => $totalCartPrice,
-        'deposit' => $depositAmount,
-        'item_time' => $timePerItem,
-        'item_price' => $pricePerItem * $count,
-    ]);
-}
 
 
     public function getCartDetails()
@@ -405,108 +405,10 @@ class CartController extends Controller
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    private function validateCartReservations($customerId)
-    {
-        $cartItems = Cart::where('customer_id', $customerId)->get();
-        foreach ($cartItems as $cartItem) {
-            $elapsed = now()->diffInHours($cartItem->reserved_at);
-
-            if ($elapsed >= 24) {
-                if ($cartItem->item_id) {
-                    $item = Item::find($cartItem->item_id);
-                    if (!$item) continue;
-
-                    $available = $item->count - $item->count_reserved;
-                    $needed = $cartItem->count;
-
-                    if ($available >= $needed) {
-                        $cartItem->reserved_at = now();
-                        $cartItem->time = 0;
-                    } elseif ($available > 0) {
-                        $missing = $needed - $available;
-                        $cartItem->reserved_at = now();
-                        $cartItem->time = $missing * $item->time;
-                    } else {
-                        $cartItem->time = $needed * $item->time;
-                    }
-
-                    $cartItem->save();
-                } elseif ($cartItem->room_id) {
-                    $room = Room::with('items')->find($cartItem->room_id);
-                    if (!$room) continue;
-
-                    $totalMissingTime = 0;
-                    foreach ($room->items as $roomItem) {
-                        $available = $roomItem->count - $roomItem->count_reserved;
-                        $needed = $cartItem->count;
-
-                        if ($available >= $needed) {
-                            continue;
-                        } elseif ($available > 0) {
-                            $missing = $needed - $available;
-                            $totalMissingTime += $missing * $roomItem->time;
-                        } else {
-                            $totalMissingTime += $needed * $roomItem->time;
-                        }
-                    }
-
-                    $cartItem->reserved_at = now();
-                    $cartItem->time = $totalMissingTime;
-                    $cartItem->save();
-                }
-            }
-        }
-    }
-
-
     public function confirmCart(Request $request)
     {
         $user = auth()->user();
         $customerId = $user->customer->id;
-
         $cartItems = Cart::where('customer_id', $customerId)->get();
 
         if ($cartItems->isEmpty()) {
@@ -522,12 +424,12 @@ class CartController extends Controller
             if (!$request->has(['latitude', 'longitude'])) {
                 return response()->json(['message' => 'Latitude and longitude are required when delivery is wanted.']);
             }
-
             if (!$request->has('address') || empty($request->input('address'))) {
                 return response()->json(['message' => 'Address is required when delivery is wanted.']);
             }
         }
 
+        // حساب السعر والوقت الإجمالي
         $totalPrice = 0;
         $totalTime = 0;
 
@@ -539,17 +441,25 @@ class CartController extends Controller
         $rabbon = $totalPrice * 0.5;
         $priceAfterRabbon = $totalPrice - $rabbon;
 
-        $wallet = $user->wallets->first();
+        $wallet = $user->wallets()
+            ->where('is_active', 1)
+            ->where('wallet_type', 'investment')
+            ->first();
 
-        if (!$wallet || $wallet->balance < $rabbon) {
+        if (!$wallet) {
+            return response()->json(['message' => 'No active wallet found'], 400);
+        }
+
+        if ($wallet->balance < $rabbon) {
             return response()->json(['message' => 'Insufficient balance to pay the deposit (rabbon)'], 200);
         }
 
+        // خصم الربون من محفظة المستخدم
         $wallet->balance -= $rabbon;
         $wallet->save();
 
+        // إضافة الربون إلى محفظة المدير
         $manager = GallaryManager::with('user')->first();
-        $user = $manager?->user;
         if (!$manager || !$manager->user->wallets) {
             return response()->json(['message' => 'Manager wallet not found'], 500);
         }
@@ -562,14 +472,12 @@ class CartController extends Controller
 
         if ($wantDelivery === 'yes') {
             $deliveryRequest = new \Illuminate\Http\Request([
-                'address' => $request->input('address'),
-                'latitude' => $request->input('latitude'),
+                'address'   => $request->input('address'),
+                'latitude'  => $request->input('latitude'),
                 'longitude' => $request->input('longitude'),
             ]);
 
             $deliveryResponse = $this->getDeliveryPrice($deliveryRequest);
-            $responseData = $deliveryResponse->getData(true);
-
             $responseData = $deliveryResponse->getData(true);
 
             if ($deliveryResponse->getStatusCode() === 200) {
@@ -579,12 +487,11 @@ class CartController extends Controller
             }
         } else {
             $branchRequest = new \Illuminate\Http\Request([
-                'latitude' => $request->input('latitude'),
+                'latitude'  => $request->input('latitude'),
                 'longitude' => $request->input('longitude'),
             ]);
 
             $branchResponse = $this->getNearestBranch($branchRequest);
-
             $responseData = $branchResponse->getData(true);
 
             if ($branchResponse->getStatusCode() === 200) {
@@ -598,25 +505,29 @@ class CartController extends Controller
         $remainingAmount = $priceAfterRabbon;
         $remainingAmountWithDelivery = $wantDelivery === 'yes' ? $priceAfterRabbonWithDelivery : null;
 
+        // إنشاء أمر الشراء
         $purchaseOrder = PurchaseOrder::create([
-            'customer_id'                       => $customerId,
-            'total_price'                       => $totalPrice,
-            'status'                            => 'not_ready',
-            'is_paid'                           => 'pending',
-            'is_recived'                        => 'pending',
-            'want_delivery'                    => $wantDelivery,
-            'recive_date'                       => $request->input('recive_date', now()),
-            'latitude'                          => $request->input('latitude'),
-            'longitude'                         => $request->input('longitude'),
-            'address'                           => $request->input('address'),
-            'delivery_price'                    => $deliveryPrice,
-            'rabbon'                            => $rabbon,
-            'price_after_rabbon'               => $priceAfterRabbon,
-            'price_after_rabbon_with_delivery' => $wantDelivery === 'yes' ? $priceAfterRabbonWithDelivery : null,
-            'remaining_amount'                 => $remainingAmount,
-            'remaining_amount_with_delivery'   => $remainingAmountWithDelivery,
-            'branch_id'                        => $wantDelivery === 'no' && $nearestBranch ? $nearestBranch['id'] : null,
+            'customer_id'                        => $customerId,
+            'total_price'                        => $totalPrice,
+            'status'                             => 'in_progress',
+            'delivery_status'                   => 'pending',
+            'want_delivery'                     => $wantDelivery,
+            'is_paid'                            => 'pending',
+            'recive_date'                        => $request->input('recive_date', now()),
+            'latitude'                           => $request->input('latitude'),
+            'longitude'                          => $request->input('longitude'),
+            'address'                            => $request->input('address'),
+            'delivery_price'                     => $deliveryPrice,
+            'rabbon'                             => $rabbon,
+            'price_after_rabbon'                => $priceAfterRabbon,
+            'price_after_rabbon_with_delivery'  => $wantDelivery === 'yes' ? $priceAfterRabbonWithDelivery : null,
+            'remaining_amount_with_delivery'    => $remainingAmountWithDelivery,
+            'branch_id'                          => $wantDelivery === 'no' && $nearestBranch ? $nearestBranch['id'] : null,
         ]);
+
+
+        // تجميع البيانات للإرفاق في جدول pivot (item_orders)
+        $attachData = [];
 
         foreach ($cartItems as $cartItem) {
             $countRequested = $cartItem->count;
@@ -637,22 +548,21 @@ class CartController extends Controller
                         ]);
                     }
 
-                    $purchaseOrder->item()->attach($item->id, [
+                    $attachData[$item->id] = [
                         'count'          => $countRequested,
                         'deposite_price' => $cartItem->price_per_item,
                         'deposite_time'  => $cartItem->time_per_item,
                         'delivery_time'  => $totalTime,
-                    ]);
+                    ];
                 }
             }
 
             if ($cartItem->room_id) {
                 $purchaseOrder->roomOrders()->create([
-                    'room_id'           => $cartItem->room_id,
-                    'count'             => $countRequested,
-                    'deposite_price'    => $cartItem->price_per_item,
-                    'deposite_time'     => $cartItem->time_per_item,
-                    'purchase_order_id' => $purchaseOrder->id,
+                    'room_id'        => $cartItem->room_id,
+                    'count'          => $countRequested,
+                    'deposite_price' => $cartItem->price_per_item,
+                    'deposite_time'  => $cartItem->time_per_item,
                 ]);
 
                 $roomItems = Item::where('room_id', $cartItem->room_id)->get();
@@ -672,42 +582,27 @@ class CartController extends Controller
                 }
             }
 
-            // if ($cartItem->customization_id) {
-            //     $purchaseOrder->customizationOrders()->create([
-            //         'customization_id' => $cartItem->customization_id,
-            //         'count'            => $countRequested,
-            //         'deposite_price'   => $cartItem->price_per_item,
-            //         'deposite_time'    => $cartItem->time_per_item,
-            //     ]);
-            // }
-
-            // if ($cartItem->room_customization_id) {
-            // $purchaseOrder->roomCustomizationOrders()->create([
-            //     'room_customization_id' => $cartItem->room_customization_id,
-            //     'count'                 => $countRequested,
-            //     'deposite_price'        => $cartItem->price_per_item,
-            //     'deposite_time'         => $cartItem->time_per_item,
-            // ]);
-            // }
-
+            // حذف عنصر السلة بعد المعالجة
             $cartItem->delete();
         }
 
-        // if ($request->has('available_times') && is_array($request->available_times)) {
-        //     foreach ($request->available_times as $availableTime) {
-        //         CustomerAvailableTime::create([
-        //             'customer_id'       => $customerId,
-        //             'purchase_order_id' => $purchaseOrder->id,
-        //             'available_at'      => $availableTime,
-        //         ]);
-        //     }
-        // }
+        // إرفاق كل العناصر مع بيانات pivot دفعة واحدة
+        if (!empty($attachData)) {
+            $purchaseOrder->item()->attach($attachData);
+        }
+
+
+
+        $branch = null;
+        if ($purchaseOrder->branch_id) {
+            $branch = Branch::find($purchaseOrder->branch_id);
+        }
 
         return response()->json([
             'message' => 'Your order has been confirmed successfully!',
             'order'   => $purchaseOrder,
             'price_details' => [
-                'total_price'                     => $totalPrice,
+                'total_price'                      => $totalPrice,
                 'rabbon'                          => $rabbon,
                 'price_after_rabbon'              => $priceAfterRabbon,
                 'delivery_price'                  => $deliveryPrice,
@@ -719,7 +614,7 @@ class CartController extends Controller
         ]);
     }
 
-    //from HelperController
+
     public function getNearestBranch(Request $request)
     {
         $userLat = $request->input('latitude');
@@ -764,8 +659,6 @@ class CartController extends Controller
             'longitude' => 'nullable|numeric',
         ]);
 
-        $deliveryPrice = 0;
-
         $placeCost = PlaceCost::where('place', $request->input('address'))->first();
 
         if (!$placeCost) {
@@ -781,13 +674,17 @@ class CartController extends Controller
         $cartItems = \App\Models\Cart::where('customer_id', $customerId)->get();
 
         $totalCartPrice = $cartItems->sum('price');
-
         $totalWithDelivery = $totalCartPrice + $deliveryPrice;
+
+        // ✅ حساب الرعبون (50%) والسعر بعده مع التوصيل
+        $depositAmount = $totalCartPrice * 0.5;
+        $priceAfterDepositAndDelivery = $depositAmount + $deliveryPrice;
 
         return response()->json([
             'message' => 'Delivery price and total price with delivery retrieved successfully.',
             'delivery_price' => round($deliveryPrice, 2),
-            'total_price_with_delivery' => round($totalWithDelivery, 2)
+            'total_price_with_delivery' => round($totalWithDelivery, 2),
+            'price_after_deposit_and_delivery' => round($priceAfterDepositAndDelivery, 2)
         ]);
     }
 }

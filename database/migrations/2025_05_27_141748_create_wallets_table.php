@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('wallets', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // المستخدم المرتبط
-            $table->decimal('balance', 15, 2)->default(0.00);                 // الرصيد
-            $table->string('currency', 3)->default('USD');                    // العملة (اختياري)
-            $table->enum('wallet_type', ['investment', 'profits', 'platform']); // نوع المحفظة
-            $table->boolean('is_active')->default(true);                      // فعّالة أو لا
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->decimal('balance', 15, 2)->default(0.00);
+            $table->string('currency', 3)->default('USD');
+            $table->enum('wallet_type', ['investment', 'profits', 'platform'])->default('platform');
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
     }

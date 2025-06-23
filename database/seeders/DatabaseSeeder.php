@@ -7,6 +7,7 @@ use App\Models\Wood;
 use App\Models\Fabric;
 use App\Models\Type;
 use App\Models\Color;
+use App\Models\PlaceCost;
 
 class DatabaseSeeder extends Seeder
 {
@@ -61,6 +62,8 @@ class DatabaseSeeder extends Seeder
             DiscountSeeder::class,
             GallaryManagerSeeder::class,
             CartItemReservationSeeder::class,
+            PlaceCostSeeder::class,
+            BranchSeeder::class
 
 
 

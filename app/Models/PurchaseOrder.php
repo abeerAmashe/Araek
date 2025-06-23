@@ -27,7 +27,6 @@ class PurchaseOrder extends Model
         'rabbon',
         'price_after_rabbon',
         'price_after_rabbon_with_delivery',
-        'remaining_amount',//المبلغ المتبقي بدون التوصيل
         'remaining_amount_with_delivery',// المبلغ المتبقي مع التوصيل
         'branch_id'
     ];

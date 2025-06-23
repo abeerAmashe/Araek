@@ -29,10 +29,9 @@ Route::middleware('auth:sanctum')->group(function () {
     //response
     Route::post('/cart_remove-partial', [CartController::class, 'removePartialFromCart']);
     Route::delete('/deleteCart', [CartController::class, 'deleteCart']);
-
-
-
     //Order:
+    Route::post('/getDeliveryPrice', [CartController::class, 'getDeliveryPrice']);
+    Route::post('/nearest-branch', [CartController::class, 'getNearestBranch']);
     Route::post('confirmCart', [CartController::class, 'confirmCart']);
 });
 
@@ -175,8 +174,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/getFavoritesWithDetails', [FavoriteController::class, 'getFavoritesWithDetails']);
     Route::get('/getRoomDetails/{room_id}', [RoomController::class, 'getRoomDetails']);
     Route::post('/addToCartFavorite', [CustomerController::class, 'addToCartFavorite']);
-    Route::post('/nearest-branch', [HelperController::class, 'getNearestBranch']);
-    Route::post('/getDeliveryPrice', [HelperController::class, 'getDeliveryPrice']);
     Route::post('/ChargeInvestmentWallet', [CustomerController::class, 'ChargeInvestmentWallet']);
     Route::get('/getOrdersByCustomer', [CustomerController::class, 'getOrdersByCustomer']);
     Route::get('/wallet_balance', [CustomerController::class, 'getUserBalance']);

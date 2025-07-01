@@ -244,7 +244,7 @@ class RoomController extends Controller
             'fabrics' => $allFabrics,
             'ratings' => $ratingData,
         ]);
-    }    
+    }
     public function trendingRooms()
     {
         $rooms = Room::withCount(['roomOrder as total_sales' => function ($query) {
@@ -305,7 +305,7 @@ class RoomController extends Controller
             'customizations' => $customizationsData,
         ]);
     }
-     public function customizeRoom(Request $request, $roomId)
+    public function customizeRoom(Request $request, $roomId)
     {
         $user = auth()->user()->customer;
 
@@ -458,5 +458,5 @@ class RoomController extends Controller
     // }
 
 
-    
+
 }

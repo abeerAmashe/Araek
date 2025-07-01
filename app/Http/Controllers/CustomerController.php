@@ -152,65 +152,7 @@ class CustomerController extends Controller
 
         return response()->json(['message' => 'You must provide either item_id or room_id'], 200);
     }
-    public function ChargeInvestmentWallet(Request $request)
-    {
-        $request->validate([
-            'token' => 'required|string',
-            'amount' => 'required|numeric|min:1',
-            'description' => 'nullable|string',
-            'payment_method' => 'required|string',
-            'currency' => 'nullable|string',
-        ]);
-
-        try {
-            $user = auth()->user();
-            $wallet = $user->wallets()->where('wallet_type', 'investment')->first();
-
-            if (!$wallet) {
-                return response()->json(['message' => 'Wallet not found'], 404);
-            }
-
-            $stripe = new \Stripe\StripeClient(env('STRIPE_SECRET'));
-
-            $charge = $stripe->charges->create([
-                'amount' => $request->amount,
-                'currency' => $request->currency ?? 'usd',
-                'source' => $request->token,
-                'description' => $request->description ?? 'Wallet top-up',
-            ]);
-
-            $amountInDollars = $request->amount;
-
-            DB::transaction(function () use ($user, $wallet, $charge, $amountInDollars, $request) {
-                $transaction = Transaction::create([
-                    'user_id' => $user->id,
-                    'wallet_id' => $wallet->id,
-                    'amount' => $amountInDollars,
-                    'type' => 'deposit',
-                    'status' => 'completed',
-                    'stripe_payment_id' => $charge->id,
-                ]);
-
-                StripePayment::create([
-                    'transaction_id' => $transaction->id,
-                    'payment_intent_id' => $charge->id,
-                    'amount' => $amountInDollars,
-                    'currency' => $charge->currency,
-                    'payment_method' => $charge->payment_method ?? $request->payment_method,
-                    'status' => $charge->status,
-                    'receipt_url' => $charge->receipt_url ?? null,
-                ]);
-
-                $wallet->increment('balance', $amountInDollars);
-            });
-
-            return response()->json(['message' => 'Wallet charged successfully.']);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Payment failed: ' . $e->getMessage()
-            ], 500);
-        }
-    }
+    
     function haversineGreatCircleDistance($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo, $earthRadius = 6371)
     {
         $latFrom = deg2rad($latitudeFrom);
@@ -225,8 +167,6 @@ class CustomerController extends Controller
             cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)));
         return $angle * $earthRadius;
     }
-
-
     public function getType()
     {
         $itemTypes = ItemType::all();
@@ -560,22 +500,6 @@ class CustomerController extends Controller
 
         return response()->json($response);
     }
-    public function getOrdersByCustomer()
-    {
-        $customerId = auth()->user()->customer->id;
-
-        $customer = Customer::with(['purchaseOrders.item', 'purchaseOrders.roomOrders'])->find($customerId);
-
-
-        if (!$customer) {
-            return response()->json(['message' => 'Customer not found'], 404);
-        }
-
-        return response()->json([
-            'customer' => $customer->name,
-            'orders' => $customer->purchaseOrders,
-        ]);
-    }
     public function getUserBalance()
     {
         $user = auth()->user();
@@ -594,101 +518,5 @@ class CustomerController extends Controller
             'balance' => $wallet->balance,
             'currency' => $wallet->currency,
         ]);
-    }
-    public function getAllOrders()
-    {
-        $orders = PurchaseOrder::select('id', 'status', 'recive_date', 'remaining_amount_with_delivery')
-            ->get()
-            ->map(function ($order) {
-                $remainingTime = '00:00';
-
-                if ($order->recive_date) {
-                    $now = Carbon::now()->startOfDay();
-                    $reciveDate = Carbon::parse($order->recive_date)->startOfDay();
-
-                    if ($reciveDate->greaterThan($now)) {
-                        $diffInDays = $now->diffInDays($reciveDate);
-                        $remainingTime = sprintf('%02d:00', $diffInDays * 24); // عدد الساعات المتبقية (أيام * 24)
-                    }
-                }
-
-                return [
-                    'id' => $order->id,
-                    'status' => $order->status,
-                    'remaining_time' => $remainingTime,
-                    'remaining_bill' => number_format($order->remaining_amount_with_delivery, 2) . ' $',
-                ];
-            });
-
-        return response()->json([
-            'message' => 'Orders retrieved successfully.',
-            'orders' => $orders,
-        ]);
-    }
-    public function getOrderDetails($orderId)
-    {
-        $order = PurchaseOrder::with(['roomOrders.room', 'item'])->find($orderId);
-
-        if (!$order) {
-            return response()->json([
-                'message' => 'Order not found.',
-            ], 404);
-        }
-
-        $remainingTime = '00:00';
-        if ($order->recive_date) {
-            $now = Carbon::now()->startOfDay();
-            $reciveDate = Carbon::parse($order->recive_date)->startOfDay();
-
-            if ($reciveDate->greaterThan($now)) {
-                $diffInDays = $now->diffInDays($reciveDate);
-                $remainingTime = sprintf('%02d:00', $diffInDays * 24);
-            }
-        }
-
-        $rooms = $order->roomOrders->map(function ($roomOrder) {
-            return [
-                'room_id'    => $roomOrder->room->id ?? null,
-                'room_name'  => $roomOrder->room->name ?? null,
-                'room_img'   => $roomOrder->room->image ?? null,
-                'room_price' => $roomOrder->room->price ?? null,
-            ];
-        });
-
-        $items = $order->item->map(function ($item) {
-            $depositAmount = $item->price * 0.5;
-
-            return [
-                'item_id'        => $item->id,
-                'item_name'      => $item->name,
-                'item_image'     => $item->image_url,
-                'item_price'     => $item->price,
-                'count_ordered'  => $item->pivot->count ?? 0,
-                'deposite_price' => number_format($depositAmount, 2), // 50% من السعر
-            ];
-        });
-
-        return response()->json([
-            'message' => 'Order details retrieved successfully.',
-            'id' => $order->id,
-            'status' => $order->status,
-            'remaining_time' => $remainingTime,
-            'remaining_bill' => number_format($order->remaining_amount_with_delivery, 2) . ' $',
-            'rooms_ordered' => $rooms,
-            'items_ordered' => $items,
-        ]);
-    }
-    public function cancelOrder($orderId)
-    {
-        $order = PurchaseOrder::find($orderId);
-
-        if (!$order) {
-            return response()->json(['error' => 'Order not found'], 404);
-        }
-
-        $order->status = 'cancelled';
-        $order->save();
-
-        return response()->json(['message' => 'Order cancelled successfully']);
     }
 }

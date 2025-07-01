@@ -4,31 +4,25 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+class CreateItemDetailsTable extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
+    public function up()
     {
         Schema::create('item_details', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('item_id')->constrained('items')->cascadeOnDelete();
-
+            $table->foreignId('item_id')->constrained()->onDelete('cascade');
+            $table->foreignId('wood_id')->constrained('woods')->onDelete('cascade');
+            $table->foreignId('fabric_id')->constrained()->onDelete('cascade');
             $table->float('wood_length')->nullable();
             $table->float('wood_width')->nullable();
             $table->float('wood_height')->nullable();
-            $table->integer('fabric_dimension');
-
+            $table->string('fabric_dimension')->nullable();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('item_details');
     }
-};
+}

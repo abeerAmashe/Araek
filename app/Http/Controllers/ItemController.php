@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Customization;
 use App\Models\Fabric;
+use App\Models\FabricType;
 use App\Models\Item;
 use App\Models\Wood;
+use App\Models\WoodType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -290,4 +292,239 @@ class ItemController extends Controller
             ]);
         }
     }
+
+
+    public function getItemCustomizationOptions($itemId)
+    {
+        $item = Item::with([
+            'itemDetail.itemWoods.wood.colors',
+            'itemDetail.itemWoods.wood.types',
+            'itemDetail.itemFabrics.fabric.colors',
+            'itemDetail.itemFabrics.fabric.types',
+        ])->find($itemId);
+
+        if (!$item) {
+            return response()->json(['message' => 'Item not found'], 404);
+        }
+
+        $defaultWood = [
+            'color' => $item->wood_color,
+            'type' => $item->wood_type,
+        ];
+
+        $defaultFabric = [
+            'color' => $item->fabric_color,
+            'type' => $item->fabric_type,
+        ];
+
+        $woodOptions = collect();
+        $fabricOptions = collect();
+
+        foreach ($item->itemDetail as $detail) {
+            foreach ($detail->itemWoods as $itemWood) {
+                foreach ($itemWood->wood as $wood) {
+                    $woodOptions->push([
+                        'wood_id' => $wood->id,
+                        'wood_name' => $wood->name,
+                        'colors' => $wood->colors->map(fn($color) => [
+                            'id' => $color->id,
+                            'name' => $color->name,
+                        ]),
+                        'types' => $wood->types->map(fn($type) => [
+                            'id' => $type->id,
+                            'name' => $type->name,
+                        ]),
+                    ]);
+                }
+            }
+
+            foreach ($detail->itemFabrics as $itemFabric) {
+                foreach ($itemFabric->fabric as $fabric) {
+                    $fabricOptions->push([
+                        'fabric_id' => $fabric->id,
+                        'fabric_name' => $fabric->name,
+                        'colors' => $fabric->colors->map(fn($color) => [
+                            'id' => $color->id,
+                            'name' => $color->name,
+                        ]),
+                        'types' => $fabric->types->map(fn($type) => [
+                            'id' => $type->id,
+                            'name' => $type->name,
+                        ]),
+                    ]);
+                }
+            }
+        }
+
+        return response()->json([
+            'default_wood' => $defaultWood,
+            'default_fabric' => $defaultFabric,
+            'available_woods' => $woodOptions->unique('wood_id')->values(),
+            'available_fabrics' => $fabricOptions->unique('fabric_id')->values(),
+        ]);
+    }
+
+
+    public function getAutoDetails($itemId)
+    {
+        $item = Item::find($itemId);
+
+        if (!$item) {
+            return [];
+        }
+
+        $details = $item->itemDetail()->get();
+
+        $result = [];
+
+        foreach ($details as $detail) {
+
+            $wood = null;
+            $woodTypeName = null;
+            $woodColorName = null;
+            if ($detail->wood_id) {
+                $wood = \App\Models\Wood::find($detail->wood_id);
+                if ($wood) {
+                    $woodType = \App\Models\WoodType::find($wood->wood_type_id);
+                    $woodColor = \App\Models\WoodColor::find($wood->wood_color_id);
+
+                    $woodTypeName = $woodType?->name;
+                    $woodColorName = $woodColor?->name;
+                }
+            }
+
+            $fabric = null;
+            $fabricTypeName = null;
+            $fabricColorName = null;
+            if ($detail->fabric_id) {
+                $fabric = \App\Models\Fabric::find($detail->fabric_id);
+                if ($fabric) {
+                    $fabricType = \App\Models\FabricType::find($fabric->fabric_type_id);
+                    $fabricColor = \App\Models\FabricColor::find($fabric->fabric_color_id);
+
+                    $fabricTypeName = $fabricType?->name;
+                    $fabricColorName = $fabricColor?->name;
+                }
+            }
+
+            $result[] = [
+                'wood' => [
+                    'id' => $wood?->id,
+                    'length' => $detail->wood_length,
+                    'width' => $detail->wood_width,
+                    'height' => $detail->wood_height,
+                    'type' => $woodTypeName,
+                    'color' => $woodColorName,
+                ],
+                'fabric' => [
+                    'id' => $fabric?->id,
+                    'dimension' => $detail->fabric_dimension,
+                    'type' => $fabricTypeName,
+                    'color' => $fabricColorName,
+                ],
+            ];
+        }
+
+        return $result;
+    }
+
+    public function getMaterialOptions($itemId)
+    {
+        $item = Item::with(
+            'itemDetail.wood.WoodColor',
+            'itemDetail.wood.WoodType',
+            'itemDetail.fabric.fabricColor',
+            'itemDetail.fabric.fabricType'
+        )->find($itemId);
+
+        if (!$item) {
+            return response()->json(['message' => 'Item not found'], 404);
+        }
+
+        $woodOptions = [];
+        $fabricOptions = [];
+
+        foreach ($item->itemDetail as $detail) {
+            // WOOD
+            if ($detail->wood) {
+                $wood = $detail->wood;
+                $woodOptions[] = [
+                    'wood_id' => $wood->id,
+                    'wood_name' => $wood->name,
+                    'wood_type' => $wood->WoodType?->name,
+                    'wood_color' => $wood->WoodColor?->name,
+                    'price_per_meter' => $wood->price_per_meter,
+                ];
+            }
+
+            // FABRIC
+            if ($detail->fabric) {
+                $fabric = $detail->fabric;
+                $fabricOptions[] = [
+                    'fabric_id' => $fabric->id,
+                    'fabric_name' => $fabric->name,
+                    'fabric_type' => $fabric->fabricType?->name,
+                    'fabric_color' => $fabric->fabricColor?->name,
+                    'price_per_meter' => $fabric->price_per_meter,
+                ];
+            }
+        }
+
+        return response()->json([
+            'wood_options' => $woodOptions,
+            'fabric_options' => $fabricOptions,
+        ]);
+    }
+
+
+    public function getWoodTypesForItem($itemId)
+    {
+        $item = Item::with('itemDetail.wood.woodType')->find($itemId);
+
+        if (!$item) {
+            return response()->json(['message' => 'Item not found'], 404);
+        }
+
+        $woodTypes = $item->itemDetail
+            ->filter(fn($detail) => $detail->wood && $detail->wood->woodType)
+            ->pluck('wood.woodType')
+            ->unique('id') // remove duplicates
+            ->values()
+            ->map(function ($woodType) {
+                return [
+                    'id' => $woodType->id,
+                    'name' => $woodType->name,
+                ];
+            });
+
+        return response()->json([
+            'wood_types' => $woodTypes,
+        ]);
+    }
+
+    public function getWoodColorsByType($woodTypeId)
+{
+    $woods = Wood::with('woodColor')
+        ->where('wood_type_id', $woodTypeId)
+        ->get();
+
+    // نحصل على كل الألوان مع سعرها (نختار أول سعر من كل مجموعة لون)
+    $colors = $woods
+        ->filter(fn($wood) => $wood->woodColor)
+        ->groupBy('wood_color_id')
+        ->map(function ($group) {
+            $wood = $group->first(); // أول عنصر يحمل نفس اللون
+            return [
+                'id' => $wood->woodColor->id,
+                'name' => $wood->woodColor->name,
+                'price_per_meter' => $wood->price_per_meter,
+            ];
+        })
+        ->values();
+
+    return response()->json([
+        'wood_colors' => $colors,
+    ]);
+}
+
 }

@@ -5,20 +5,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class CartItemReservation extends Model
+class RoomItemOrder extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'cart_id',
+        'room_order_id',
         'item_id',
+        'room_id',
         'count_reserved',
-        'room_id'
+        'purchase_order_id'
     ];
 
-    public function cart()
+    public function roomOrder()
     {
-        return $this->belongsTo(Cart::class);
+        return $this->belongsTo(RoomOrder::class);
     }
 
     public function item()

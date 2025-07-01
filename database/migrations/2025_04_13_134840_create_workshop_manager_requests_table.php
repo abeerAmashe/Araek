@@ -16,6 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('purchase_order_id');
             $table->unsignedBigInteger('item_id')->nullable();
             $table->unsignedBigInteger('room_id')->nullable();
+            $table->unsignedBigInteger('branch_id');
             $table->integer('required_count');
             $table->timestamps();
             $table->unsignedBigInteger('customization_id')->nullable();
@@ -23,6 +24,7 @@ return new class extends Migration
             $table->foreign('purchase_order_id')->references('id')->on('purchase_orders')->onDelete('cascade');
             $table->foreign('item_id')->references('id')->on('items')->onDelete('cascade');
             $table->foreign('room_id')->references('id')->on('rooms')->onDelete('cascade');
+            $table->foreign('branch_id')->references('id')->on('branchs')->onDelete('cascade');
         });
     }
 

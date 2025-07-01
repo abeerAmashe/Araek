@@ -79,46 +79,7 @@ class HelperController extends Controller
             return response()->json(['message' => 'Please send either room_id or item_id.'], 200);
         }
     }
-    protected function findAvailableDeliveryTime()
-    {
-        $customerId = auth()->user()->customer->id;
-
-        $customerTimes = AvailableTime::where('customer_id', $customerId)
-            ->pluck('available_at');
-
-        $companyAvailability = DeliveryCompanyAvailability::get()
-            ->keyBy('day_of_week');
-
-        $bookedTimes = PurchaseOrder::whereNotNull('delivery_time')
-            ->pluck('delivery_time')
-            ->map(fn($time) => Carbon::parse($time)->format('Y-m-d H:i'))
-            ->toArray();
-
-        foreach ($customerTimes as $time) {
-            $carbonTime = Carbon::parse($time);
-            $formattedTime = $carbonTime->format('Y-m-d H:i');
-            $dayName = strtolower($carbonTime->format('l'));
-
-            if (!$companyAvailability->has($dayName)) {
-                continue;
-            }
-
-            $startTime = $companyAvailability[$dayName]->start_time;
-            $endTime = $companyAvailability[$dayName]->end_time;
-
-            $timeOnly = $carbonTime->format('H:i:s');
-
-            if ($timeOnly >= $startTime && $timeOnly <= $endTime) {
-                if (!in_array($formattedTime, $bookedTimes)) {
-                    return $formattedTime;
-                }
-            }
-        }
-
-        return null;
-    }
    
-    
     public function getExchangeRate($from, $to)
     {
         try {

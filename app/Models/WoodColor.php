@@ -3,14 +3,19 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 use Illuminate\Database\Eloquent\Model;
 
-class Type extends Model
+class WoodColor extends Model
 {
     use HasFactory;
+
     protected $fillable = [
-        'name',      
-        'wood_id',
-        'fabric_id'
+        'name'
     ];
+
+    public function wood()
+    {
+        return $this->hasMany(Wood::class);
+    }
 }

@@ -2,24 +2,17 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class RoomDetail extends Model
+
+class FabricType extends Model
 {
     use HasFactory;
+
     protected $fillable = [
-        'room_id',
-        'count'
+        'name'
     ];
-
-
-    public function woods()
-    {
-        return $this->hasMany(Wood::class); 
-    }
-
-
 
     public function fabrics()
     {

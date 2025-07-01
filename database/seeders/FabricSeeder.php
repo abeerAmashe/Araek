@@ -7,8 +7,8 @@ use App\Models\Fabric;
 
 class FabricSeeder extends Seeder
 {
-    public function run(): void
+    public function run()
     {
-        Fabric::factory()->count(15)->create();
+        Fabric::factory()->count(20)->create();
     }
 }

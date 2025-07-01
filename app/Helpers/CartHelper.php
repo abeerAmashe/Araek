@@ -6,64 +6,103 @@ use App\Models\Cart;
 use App\Models\Item;
 use App\Models\Room;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log; // استخدام Log بدلاً من info()
+use Illuminate\Support\Facades\Log;
 
 class CartHelper
 {
     public static function validateCartReservations()
     {
-        // الحصول على السلات التي تم حجزها منذ أكثر من 24 ساعة
         $expiredCarts = Cart::where('reserved_at', '<', Carbon::now()->subHours(24))->get();
-        
-        // التعامل مع كل سلة منتهية
+
         foreach ($expiredCarts as $cart) {
-            // إذا كانت السلة تحتوي على عنصر (Item)
+            // ==== الحالة: السلة تحتوي عنصر مباشر ====
             if ($cart->item_id) {
                 $item = Item::find($cart->item_id);
                 if ($item) {
-                    // التحقق من الكمية المتاحة في المخزون
-                    $availableStock = $item->count - $item->count_reserved;
+                    // حذف الحجز القديم
+                    $item->count_reserved = max(0, $item->count_reserved - $cart->count_reserved);
+                    $item->save();
 
-                    // إذا كانت الكمية المتاحة في المخزون تسمح بإرجاع الكمية المحجوزة
-                    if ($availableStock >= $cart->count) {
-                        // إعادة الحجز بناءً على المخزون المتاح
-                        $item->count_reserved += $cart->count;
-                        $item->save();
-                    } else {
-                        // إلغاء الحجز إذا كانت الكمية غير كافية
-                        $item->count_reserved = max(0, $item->count_reserved - $cart->count);
-                        $item->save();
-                        // إلغاء الحجز بالكامل إذا لم يكن هناك مخزون كافي
-                        Log::info("Insufficient stock to re-reserve Item ID: {$cart->item_id}. Reservation cancelled.");
+                    // حساب المتوفر
+                    $availableCount = max(0, $item->count - $item->count_reserved);
+                    $newReservedCount = min($cart->count, $availableCount);
+                    $missingCount = $cart->count - $newReservedCount;
+                    $timeForMissing = $missingCount * $item->time;
+
+                    // تحديث السلة
+                    $cart->count_reserved = $newReservedCount;
+                    $cart->time = $timeForMissing;
+                    $cart->reserved_at = Carbon::now();
+                    $cart->save();
+
+                    // إعادة الحجز في العنصر
+                    $item->count_reserved += $newReservedCount;
+                    if ($item->count_reserved > $item->count) {
+                        $item->count_reserved = $item->count;
                     }
+                    $item->save();
                 }
             }
-            // إذا كانت السلة تحتوي على غرفة (Room)
+
+            // ==== الحالة: السلة تحتوي غرفة ====
             elseif ($cart->room_id) {
                 $room = Room::with('items')->find($cart->room_id);
                 if ($room) {
-                    // التحقق من الكمية المتاحة في المخزون للغرفة
-                    foreach ($room->items as $roomItem) {
-                        $availableStock = $roomItem->count - $roomItem->count_reserved;
+                    // حذف الحجز القديم من الغرفة
+                    $room->count_reserved = max(0, $room->count_reserved - $cart->count_reserved);
+                    $room->save();
 
-                        // إذا كانت الكمية المتاحة في المخزون تسمح بإرجاع الكمية المحجوزة
-                        if ($availableStock >= $cart->count) {
-                            // إعادة الحجز بناءً على المخزون المتاح
-                            $roomItem->count_reserved += $cart->count;
-                            $roomItem->save();
-                        } else {
-                            // إلغاء الحجز إذا كانت الكمية غير كافية
-                            $roomItem->count_reserved = max(0, $roomItem->count_reserved - $cart->count);
-                            $roomItem->save();
-                            // إلغاء الحجز بالكامل إذا لم يكن هناك مخزون كافي
-                            Log::info("Insufficient stock to re-reserve Room Item ID: {$roomItem->id}. Reservation cancelled.");
+                    // حذف الحجز القديم من العناصر التابعة للغرفة
+                    foreach ($room->items as $roomItem) {
+                        $roomItem->count_reserved = max(0, $roomItem->count_reserved - $cart->count_reserved);
+                        $roomItem->save();
+                    }
+
+                    // إعادة حساب العدد القابل للحجز الآن
+                    $availableRooms = max(0, $room->count - $room->count_reserved);
+                    $maxReservable = min($cart->count, $availableRooms);
+                    $missingTime = 0;
+
+                    // تحقق من توفر كل عنصر تابع للغرفة
+                    foreach ($room->items as $roomItem) {
+                        $availableItem = max(0, $roomItem->count - $roomItem->count_reserved);
+                        if ($availableItem < $maxReservable) {
+                            $reduction = $maxReservable - $availableItem;
+                            $maxReservable = $availableItem;
+                            $missingItemCount = $cart->count - $maxReservable;
+                            $missingTime += $missingItemCount * $roomItem->time;
                         }
+                    }
+
+                    // وقت الغرف الناقصة
+                    $missingRoomCount = $cart->count - $maxReservable;
+                    $missingTime += $missingRoomCount * $room->time;
+
+                    // تحديث السلة
+                    $cart->count_reserved = $maxReservable;
+                    $cart->time = $missingTime;
+                    $cart->reserved_at = Carbon::now();
+                    $cart->save();
+
+                    // إعادة الحجز في الغرفة
+                    $room->count_reserved += $maxReservable;
+                    if ($room->count_reserved > $room->count) {
+                        $room->count_reserved = $room->count;
+                    }
+                    $room->save();
+
+                    // إعادة الحجز في العناصر التابعة
+                    foreach ($room->items as $roomItem) {
+                        $roomItem->count_reserved += $maxReservable;
+                        if ($roomItem->count_reserved > $roomItem->count) {
+                            $roomItem->count_reserved = $roomItem->count;
+                        }
+                        $roomItem->save();
                     }
                 }
             }
         }
 
-        // تسجيل رسالة عند انتهاء العملية
         Log::info('Expired reservations checked and updated!');
     }
 }

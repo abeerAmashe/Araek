@@ -3,12 +3,12 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Wood;
+use App\Models\WoodType;
 
-class WoodSeeder extends Seeder
+class WoodTypeSeeder extends Seeder
 {
     public function run()
     {
-        Wood::factory()->count(20)->create();
+        WoodType::factory()->count(8)->create();
     }
 }

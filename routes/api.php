@@ -7,7 +7,9 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\HelperController;
 use App\Http\Controllers\ItemController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\RatingController;
 use App\Http\Controllers\RecommendationController;
 use App\Http\Controllers\RoomController;
@@ -35,6 +37,37 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('confirmCart', [CartController::class, 'confirmCart']);
 });
 
+//PurchaseOrderController
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/getOrdersByCustomer', [PurchaseOrderController::class, 'getOrdersByCustomer']);
+    Route::get('/GetAllOrders', [PurchaseOrderController::class, 'getAllOrders']);
+    Route::get('/orders_details/{orderId}', [PurchaseOrderController::class, 'getOrderDetails']);
+    Route::post('/orders_cancel/{orderId}', [PurchaseOrderController::class, 'cancelOrder']);
+});
+
+//PaymentController
+Route::middleware('auth:sanctum')->group(function () {
+
+    Route::post('/ChargeInvestmentWallet', [PaymentController::class, 'ChargeInvestmentWallet']);
+    Route::get('/getTransactions', [PaymentController::class, 'index']);
+});
+
+//customize
+
+Route::get('/getAutoDetails/{itemId}', [ItemController::class, 'getAutoDetails']);
+Route::get('/getMaterialOptions/{itemId}', [ItemController::class, 'getMaterialOptions']);
+
+
+Route::get('/getWoodTypes/{itemId}', [ItemController::class, 'getWoodTypesForItem']);
+Route::get('/getWoodTypeColor/{woodTypeId}', [ItemController::class, 'getWoodColorsByType']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/customizeItem/{item}', [ItemController::class, 'customizeItem']);
+    Route::post('/customizeRoom/{item}', [RoomController::class, 'customizeRoom']);
+    Route::get('/getItemCustomization/{itemId}', [ItemController::class, 'getItemCustomization']);
+    Route::get('/getRoomAfterCustomization/{roomCustomizationId}', [RoomController::class, 'getRoomAfterCustomization']);
+    Route::post('/customization-response/{itemId}', [ItemController::class, 'handleCustomizationResponse']);
+});
 
 
 
@@ -112,9 +145,7 @@ Route::middleware('auth:sanctum')->group(function () {
     //.
     Route::get('/getUserSpecificFeedback', [RatingController::class, 'getUserSpecificFeedback']);
     //.
-    Route::post('/customizeItem/{item}', [ItemController::class, 'customizeItem']);
     //.
-    Route::post('/customization-response/{itemId}', [ItemController::class, 'handleCustomizationResponse']);
     //اخد الوقت انه جمع وليس حسب الاطول
     //.
     // Route::post('/addToCart', [CustomerController::class, 'addToCart']);
@@ -139,11 +170,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Route::get('/availableTime', [HelperController::class, 'findAvailableDeliveryTime']);
     //price
-    Route::get('/getItemCustomization/{itemId}', [ItemController::class, 'getItemCustomization']);
+
     //price
-    Route::post('/customizeRoom/{item}', [RoomController::class, 'customizeRoom']);
-    //price
-    Route::get('/getRoomAfterCustomization/{roomCustomizationId}', [RoomController::class, 'getRoomAfterCustomization']);
     //price
     //اذا العدد اكبر من الموجود
 });
@@ -174,10 +202,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/getFavoritesWithDetails', [FavoriteController::class, 'getFavoritesWithDetails']);
     Route::get('/getRoomDetails/{room_id}', [RoomController::class, 'getRoomDetails']);
     Route::post('/addToCartFavorite', [CustomerController::class, 'addToCartFavorite']);
-    Route::post('/ChargeInvestmentWallet', [CustomerController::class, 'ChargeInvestmentWallet']);
-    Route::get('/getOrdersByCustomer', [CustomerController::class, 'getOrdersByCustomer']);
     Route::get('/wallet_balance', [CustomerController::class, 'getUserBalance']);
-    Route::get('/GetAllOrders', [CustomerController::class, 'getAllOrders']);
-    Route::get('/orders_details/{orderId}', [CustomerController::class, 'getOrderDetails']);
-    Route::post('/orders_cancel/{orderId}', [CustomerController::class, 'cancelOrder']);
 });

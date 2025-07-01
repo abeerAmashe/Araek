@@ -2,26 +2,26 @@
 
 namespace Database\Factories;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Models\ItemDetail;
+use App\Models\Item;
 use App\Models\Wood;
 use App\Models\Fabric;
-use App\Models\Item;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 class ItemDetailFactory extends Factory
 {
-    protected $model = \App\Models\ItemDetail::class;
+    protected $model = ItemDetail::class;
 
     public function definition()
     {
         return [
-            'wood_id' => Wood::factory(),
             'item_id' => Item::factory(),
+            'wood_id' => Wood::factory(),
             'fabric_id' => Fabric::factory(),
-            'wood_length' => $this->faker->randomFloat(2, 10, 100),
-            'wood_width' => $this->faker->randomFloat(2, 10, 100),
-            'wood_height' => $this->faker->randomFloat(2, 5, 50),
-            'fabric_dimension' => $this->faker->numberBetween(10, 100),
-           
+            'wood_length' => $this->faker->randomFloat(2, 10, 200),
+            'wood_width' => $this->faker->randomFloat(2, 10, 200),
+            'wood_height' => $this->faker->randomFloat(2, 10, 200),
+            'fabric_dimension' => $this->faker->randomElement(['100x100', '200x150', '150x150']),
         ];
     }
 }

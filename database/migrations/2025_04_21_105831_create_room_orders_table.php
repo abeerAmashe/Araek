@@ -23,6 +23,7 @@ return new class extends Migration
                 ->onDelete('cascade');
             $table->decimal('deposite_price', 8, 2);
             $table->decimal('deposite_time', 8, 2);
+            $table->integer('count_reserved');
             $table->timestamps();
         });
     }

@@ -7,7 +7,11 @@ use App\Models\Wood;
 use App\Models\Fabric;
 use App\Models\Type;
 use App\Models\Color;
+use App\Models\FabricColor;
+use App\Models\FabricType;
 use App\Models\PlaceCost;
+use App\Models\WoodColor;
+use App\Models\WoodType;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,57 +20,56 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // إنشاء عينات من الأخشاب والأقمشة أولاً
         $woods = Wood::factory()->count(10)->create();
         $fabrics = Fabric::factory()->count(10)->create();
 
-        // ربط كل Wood بلون ونوع
         foreach ($woods as $wood) {
-            Color::factory()->create([
+            WoodColor::factory()->create([
                 'name' => fake()->safeColorName(),
-                'wood_id' => $wood->id,
-                'fabric_id' => null,
             ]);
 
-            Type::factory()->create([
-                'wood_id' => $wood->id,
-                'fabric_id' => $fabrics->random()->id,
+            WoodType::factory()->create([
+                'name' => fake()->word(),
             ]);
         }
 
-        // ربط كل Fabric بلون ونوع
         foreach ($fabrics as $fabric) {
-            Color::factory()->create([
+            FabricColor::factory()->create([
                 'name' => fake()->safeColorName(),
-                'fabric_id' => $fabric->id,
-                'wood_id' => null,
             ]);
 
-            Type::factory()->create([
-                'fabric_id' => $fabric->id,
-                'wood_id' => $woods->random()->id,
+            FabricType::factory()->create([
+                'name' => fake()->word(),
             ]);
         }
+
 
         $this->call([
-            UserSeeder::class,
-            CustomerSeeder::class,
-            CategorySeeder::class,
-            RoomSeeder::class,
-            RoomDetailSeeder::class,
-            LikeSeeder::class,
-            RatingSeeder::class,
-            ItemSeeder::class,
-            FixRoomRelationsSeeder::class,
-            CartSeeder::class,
-            DiscountSeeder::class,
-            GallaryManagerSeeder::class,
-            CartItemReservationSeeder::class,
-            PlaceCostSeeder::class,
-            BranchSeeder::class
-
-
-
-        ]);
+        UserSeeder::class,
+        CustomerSeeder::class,
+        WoodSeeder::class,
+        FabricSeeder::class,
+        CategorySeeder::class,
+        RoomSeeder::class,
+        LikeSeeder::class,
+        RatingSeeder::class,
+        ItemSeeder::class,
+        CartSeeder::class,
+        DiscountSeeder::class,
+        GallaryManagerSeeder::class,
+        CartItemReservationSeeder::class,
+        PlaceCostSeeder::class,
+        BranchSeeder::class,
+        FabricColorSeeder::class,
+        FabricTypeSeeder::class,
+        WoodColorSeeder::class,
+        WoodTypeSeeder::class,
+        ItemTypeSeeder::class,
+        ItemDetailSeeder::class,
+        PurchaseOrderSeeder::class,
+        FavoriteSeeder::class,
+        AvailableTimeSeeder::class,
+        DeliveryCompanyAvailabilitySeeder::class,
+    ]);
     }
 }

@@ -15,14 +15,13 @@ class Customization extends Model
         'wood_id',
         'fabric_id',
         'extra_length',
-        'extra_width',
-        'extra_height',
-        'old_price',
+        // 'extra_width',
+        // 'extra_height',
+        // 'old_price',
         'final_price',
-        'wood_color',
-        'fabric_color',
+        // 'wood_color',
+        // 'fabric_color',
         'customer_id',
-        'final_price'
     ];
 
     public function item()

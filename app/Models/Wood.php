@@ -2,25 +2,20 @@
 
 namespace App\Models;
 
-use App\Models\Type as ModelsType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Mockery\Matcher\Type;
 
 class Wood extends Model
 {
     use HasFactory;
 
-    protected $table = 'woods';
+    protected $table = 'woods'; // تأكيد اسم الجدول الجمع
 
     protected $fillable = [
-        'id',
         'name',
         'price_per_meter',
-        'room_detail_id',
-        'item_wood_id',
-        'color'
-
+        'wood_color_id',
+        'wood_type_id'
     ];
 
     protected $casts = [
@@ -28,32 +23,18 @@ class Wood extends Model
     ];
 
 
-
-    public function rooms()
-    {
-        return $this->belongsToMany(Room::class, 'room_wood');
-    }
-
-    public function colors()
-    {
-        return $this->hasMany(Color::class);
-    }
-
-    public function types()
-    {
-        return $this->hasMany(ModelsType::class);
-    }
     public function itemDetails()
     {
         return $this->hasMany(ItemDetail::class);
     }
-    public function roomDetail()
+
+    public function WoodColor()
     {
-        return $this->belongsTo(RoomDetail::class);
+        return $this->belongsTo(WoodColor::class);
     }
 
-    public function items()
+    public function WoodType()
     {
-        return $this->belongsToMany(Item::class, 'item_wood');
+        return $this->belongsTo(WoodType::class);
     }
 }

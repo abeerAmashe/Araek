@@ -16,7 +16,8 @@ class RoomOrder extends Model
         'count',
         'deposite_time',
         'deposite_price',
-        'purchase_order_id'
+        'purchase_order_id',
+        'count_reserved'
        
     ];
 

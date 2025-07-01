@@ -7,12 +7,9 @@ use App\Models\ItemDetail;
 
 class ItemDetailSeeder extends Seeder
 {
-    public function run(): void
+    public function run()
     {
-        // مسح البيانات السابقة (اختياري)
-        ItemDetail::truncate();
-
-        // إنشاء 10 سجلات باستخدام الـ Factory
-        ItemDetail::factory()->count(10)->create();
+        // توليد 30 سجل عشوائي في جدول item_details
+        ItemDetail::factory()->count(30)->create();
     }
 }

@@ -14,8 +14,9 @@ class ItemOrder extends Model
         'item_id',
         'purchase_order_id',
         'count',
-        'deposite_price',
-        'deposite_time'
+        'price',
+        'time',
+        'count_reserved'
     ];
 
     

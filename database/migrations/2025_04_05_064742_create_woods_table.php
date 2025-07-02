@@ -22,4 +22,4 @@ class CreateWoodsTable extends Migration
     {
         Schema::dropIfExists('woods');
     }
-}  
+}

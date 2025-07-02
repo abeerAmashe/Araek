@@ -4,11 +4,11 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateCustomizationsTable extends Migration
+class CreateRoomCustomizationsTable extends Migration
 {
     public function up()
     {
-        Schema::create('customizations', function (Blueprint $table) {
+        Schema::create('room_customizations', function (Blueprint $table) {
             $table->id();
 
             $table->unsignedBigInteger('item_id');
@@ -37,6 +37,6 @@ class CreateCustomizationsTable extends Migration
 
     public function down()
     {
-        Schema::dropIfExists('customizations');
+        Schema::dropIfExists('room_customizations');
     }
 }

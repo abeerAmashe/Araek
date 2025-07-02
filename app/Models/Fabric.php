@@ -36,4 +36,10 @@ class Fabric extends Model
     {
         return $this->belongsTo(FabricType::class);
     }
+
+    // App\Models\Fabric.php
+    public function roomDetails()
+    {
+        return $this->hasMany(RoomDetail::class);
+    }
 }

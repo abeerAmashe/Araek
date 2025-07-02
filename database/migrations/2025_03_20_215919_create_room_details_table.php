@@ -13,11 +13,15 @@ return new class extends Migration
     {
         Schema::create('room_details', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('room_id')->nullable(); // nullable هنا
-            $table->foreign('room_id')->references('id')->on('rooms')->onDelete('cascade');
+            $table->unsignedBigInteger('room_id');
+            $table->unsignedBigInteger('wood_id')->nullable();
+            $table->unsignedBigInteger('fabric_id')->nullable();
             $table->timestamps();
+
+            $table->foreign('room_id')->references('id')->on('rooms')->onDelete('cascade');
+            $table->foreign('wood_id')->references('id')->on('woods')->onDelete('set null');
+            $table->foreign('fabric_id')->references('id')->on('fabrics')->onDelete('set null');
         });
-        
     }
 
     /**

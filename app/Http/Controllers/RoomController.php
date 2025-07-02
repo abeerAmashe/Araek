@@ -5,11 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\CustomizationItem;
 use App\Models\Fabric;
+use App\Models\FabricColor;
+use App\Models\FabricType;
 use App\Models\Item;
 use App\Models\Rating;
 use App\Models\Room;
 use App\Models\RoomCustomization;
 use App\Models\Wood;
+use App\Models\WoodColor;
+use App\Models\WoodType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -305,118 +309,118 @@ class RoomController extends Controller
             'customizations' => $customizationsData,
         ]);
     }
-    public function customizeRoom(Request $request, $roomId)
-    {
-        $user = auth()->user()->customer;
+    // public function customizeRoom(Request $request, $roomId)
+    // {
+    //     $user = auth()->user()->customer;
 
-        $room = Room::find($roomId);
-        if (!$room) {
-            return response()->json(['message' => 'Room not found'], 200);
-        }
+    //     $room = Room::find($roomId);
+    //     if (!$room) {
+    //         return response()->json(['message' => 'Room not found'], 200);
+    //     }
 
-        if (!$request->has('items')) {
-            return response()->json(['message' => 'Items data is required'], 200);
-        }
+    //     if (!$request->has('items')) {
+    //         return response()->json(['message' => 'Items data is required'], 200);
+    //     }
 
-        $itemsData = $request->input('items');
-        $totalRoomPrice = 0;
-        $totalRoomTime = 0;
-        $itemPrices = [];
-        $customizedItemIds = [];
+    //     $itemsData = $request->input('items');
+    //     $totalRoomPrice = 0;
+    //     $totalRoomTime = 0;
+    //     $itemPrices = [];
+    //     $customizedItemIds = [];
 
-        $roomCustomization = RoomCustomization::create([
-            'room_id' => $roomId,
-            'customer_id' => $user->id,
-            'final_price' => 0,
-            'final_time' => 0,
-        ]);
+    //     $roomCustomization = RoomCustomization::create([
+    //         'room_id' => $roomId,
+    //         'customer_id' => $user->id,
+    //         'final_price' => 0,
+    //         'final_time' => 0,
+    //     ]);
 
-        foreach ($itemsData as $customizationData) {
-            $item = Item::find($customizationData['item_id']);
-            if (!$item) {
-                return response()->json(['message' => 'Item not found'], 200);
-            }
+    //     foreach ($itemsData as $customizationData) {
+    //         $item = Item::find($customizationData['item_id']);
+    //         if (!$item) {
+    //             return response()->json(['message' => 'Item not found'], 200);
+    //         }
 
-            $finalPrice = $item->price;
-            $finalTime = $item->time ?? 0;
+    //         $finalPrice = $item->price;
+    //         $finalTime = $item->time ?? 0;
 
-            $newWood = isset($customizationData['wood_id']) ? Wood::find($customizationData['wood_id']) : null;
-            $newFabric = isset($customizationData['fabric_id']) ? Fabric::find($customizationData['fabric_id']) : null;
+    //         $newWood = isset($customizationData['wood_id']) ? Wood::find($customizationData['wood_id']) : null;
+    //         $newFabric = isset($customizationData['fabric_id']) ? Fabric::find($customizationData['fabric_id']) : null;
 
-            $extraLength = $customizationData['add_to_length'] ?? 0;
-            $extraWidth = $customizationData['add_to_width'] ?? 0;
-            $extraHeight = $customizationData['add_to_height'] ?? 0;
+    //         $extraLength = $customizationData['add_to_length'] ?? 0;
+    //         $extraWidth = $customizationData['add_to_width'] ?? 0;
+    //         $extraHeight = $customizationData['add_to_height'] ?? 0;
 
-            $woodArea = 2 * (
-                $item->itemDetail->wood_length * $item->itemDetail->wood_width +
-                $item->itemDetail->wood_length * $item->itemDetail->wood_height +
-                $item->itemDetail->wood_width * $item->itemDetail->wood_height
-            );
-            $woodAreaM2 = $woodArea / 10000;
+    //         $woodArea = 2 * (
+    //             $item->itemDetail->wood_length * $item->itemDetail->wood_width +
+    //             $item->itemDetail->wood_length * $item->itemDetail->wood_height +
+    //             $item->itemDetail->wood_width * $item->itemDetail->wood_height
+    //         );
+    //         $woodAreaM2 = $woodArea / 10000;
 
-            $newWoodPrice = $newWood ? $woodAreaM2 * $newWood->price_per_meter : 0;
-            $newFabricPrice = $newFabric ? $item->itemDetail->fabric_dimension * $newFabric->price_per_meter : 0;
+    //         $newWoodPrice = $newWood ? $woodAreaM2 * $newWood->price_per_meter : 0;
+    //         $newFabricPrice = $newFabric ? $item->itemDetail->fabric_dimension * $newFabric->price_per_meter : 0;
 
-            $extraWoodCost = ($extraLength + $extraWidth + $extraHeight) * 0.1 * ($newWood ? $newWood->price_per_meter : 0);
-            $extraFabricCost = ($extraLength + $extraWidth + $extraHeight) * 0.1 * ($newFabric ? $newFabric->price_per_meter : 0);
+    //         $extraWoodCost = ($extraLength + $extraWidth + $extraHeight) * 0.1 * ($newWood ? $newWood->price_per_meter : 0);
+    //         $extraFabricCost = ($extraLength + $extraWidth + $extraHeight) * 0.1 * ($newFabric ? $newFabric->price_per_meter : 0);
 
-            $finalPrice += $newWoodPrice + $newFabricPrice + $extraWoodCost + $extraFabricCost;
+    //         $finalPrice += $newWoodPrice + $newFabricPrice + $extraWoodCost + $extraFabricCost;
 
-            CustomizationItem::create([
-                'room_customization_id' => $roomCustomization->id,
-                'item_id' => $item->id,
-                'wood_id' => $newWood?->id,
-                'fabric_id' => $newFabric?->id,
-                'wood_color' => $customizationData['wood_color'] ?? null,
-                'fabric_color' => $customizationData['fabric_color'] ?? null,
-                'add_to_length' => $extraLength,
-                'add_to_width' => $extraWidth,
-                'add_to_height' => $extraHeight,
-                'final_price' => $finalPrice,
-                'final_time' => $finalTime,
-            ]);
+    //         CustomizationItem::create([
+    //             'room_customization_id' => $roomCustomization->id,
+    //             'item_id' => $item->id,
+    //             'wood_id' => $newWood?->id,
+    //             'fabric_id' => $newFabric?->id,
+    //             'wood_color' => $customizationData['wood_color'] ?? null,
+    //             'fabric_color' => $customizationData['fabric_color'] ?? null,
+    //             'add_to_length' => $extraLength,
+    //             'add_to_width' => $extraWidth,
+    //             'add_to_height' => $extraHeight,
+    //             'final_price' => $finalPrice,
+    //             'final_time' => $finalTime,
+    //         ]);
 
-            $itemPrices[] = [
-                'item_id' => $item->id,
-                'final_price' => number_format($finalPrice, 2, '.', ''),
-                'customized' => true,
-                'time' => $finalTime,
-            ];
+    //         $itemPrices[] = [
+    //             'item_id' => $item->id,
+    //             'final_price' => number_format($finalPrice, 2, '.', ''),
+    //             'customized' => true,
+    //             'time' => $finalTime,
+    //         ];
 
-            $customizedItemIds[] = $item->id;
+    //         $customizedItemIds[] = $item->id;
 
-            $totalRoomPrice += $finalPrice;
-            $totalRoomTime += $finalTime;
-        }
+    //         $totalRoomPrice += $finalPrice;
+    //         $totalRoomTime += $finalTime;
+    //     }
 
-        $roomItems = $room->items;
+    //     $roomItems = $room->items;
 
-        foreach ($roomItems as $item) {
-            if (!in_array($item->id, $customizedItemIds)) {
-                $totalRoomTime += $item->time ?? 0;
-                $totalRoomPrice += $item->price ?? 0;
+    //     foreach ($roomItems as $item) {
+    //         if (!in_array($item->id, $customizedItemIds)) {
+    //             $totalRoomTime += $item->time ?? 0;
+    //             $totalRoomPrice += $item->price ?? 0;
 
-                $itemPrices[] = [
-                    'item_id' => $item->id,
-                    'final_price' => number_format($item->price, 2, '.', ''),
-                    'customized' => false,
-                    'time' => $item->time ?? 0,
-                ];
-            }
-        }
+    //             $itemPrices[] = [
+    //                 'item_id' => $item->id,
+    //                 'final_price' => number_format($item->price, 2, '.', ''),
+    //                 'customized' => false,
+    //                 'time' => $item->time ?? 0,
+    //             ];
+    //         }
+    //     }
 
-        $roomCustomization->update([
-            'final_price' => number_format($totalRoomPrice, 2, '.', ''),
-            'final_time' => $totalRoomTime + 10,
-        ]);
+    //     $roomCustomization->update([
+    //         'final_price' => number_format($totalRoomPrice, 2, '.', ''),
+    //         'final_time' => $totalRoomTime + 10,
+    //     ]);
 
-        return response()->json([
-            'message' => 'Room customized successfully!',
-            'item_prices' => $itemPrices,
-            'total_room_price' => number_format($totalRoomPrice, 2, '.', ''),
-            'total_room_time' => $totalRoomTime + 10,
-        ]);
-    }
+    //     return response()->json([
+    //         'message' => 'Room customized successfully!',
+    //         'item_prices' => $itemPrices,
+    //         'total_room_price' => number_format($totalRoomPrice, 2, '.', ''),
+    //         'total_room_time' => $totalRoomTime + 10,
+    //     ]);
+    // }
 
     // public function getRoomCustomization($roomId)
     // {
@@ -457,6 +461,289 @@ class RoomController extends Controller
     //     ]);
     // }
 
+    public function getRoomDefaultDetails(int $roomId)
+    {
+        $room = Room::find($roomId);
+
+        if (!$room) {
+            return response()->json(['message' => 'Room not found'], 404);
+        }
+
+        $roomDefaults = [
+            'id' => $room->id,
+            'name' => $room->name,
+            'default_wood_type' => $room->wood_type,
+            'default_wood_color' => $room->wood_color,
+            'default_fabric_type' => $room->fabric_type,
+            'default_fabric_color' => $room->fabric_color,
+        ];
+
+        return response()->json([
+            'room_defaults' => $roomDefaults
+        ]);
+    }
+
+
+    public function getRoomItemsWithOptions(int $roomId)
+    {
+        $room = Room::with([
+            'items.itemDetail.wood.woodType',
+            'items.itemDetail.wood.woodColor',
+            'items.itemDetail.fabric.fabricType',
+            'items.itemDetail.fabric.fabricColor',
+        ])->find($roomId);
+
+        if (!$room) {
+            return response()->json(['message' => 'Room not found'], 404);
+        }
+
+        $itemsData = $room->items->map(function ($item) {
+            $woodTypes = $item->itemDetail
+                ->filter(fn($d) => $d->wood && $d->wood->woodType)
+                ->pluck('wood.woodType')->unique('id')->values()
+                ->map(fn($w) => ['id' => $w->id, 'name' => $w->name]);
+
+            $woodColors = $item->itemDetail
+                ->filter(fn($d) => $d->wood && $d->wood->woodColor)
+                ->pluck('wood.woodColor')->unique('id')->values()
+                ->map(fn($w) => ['id' => $w->id, 'name' => $w->name]);
+
+            $fabricTypes = $item->itemDetail
+                ->filter(fn($d) => $d->fabric && $d->fabric->fabricType)
+                ->pluck('fabric.fabricType')->unique('id')->values()
+                ->map(fn($f) => ['id' => $f->id, 'name' => $f->name]);
+
+            $fabricColors = $item->itemDetail
+                ->filter(fn($d) => $d->fabric && $d->fabric->fabricColor)
+                ->pluck('fabric.fabricColor')->unique('id')->values()
+                ->map(fn($f) => ['id' => $f->id, 'name' => $f->name]);
+
+            return [
+                'item_id' => $item->id,
+                'item_name' => $item->name,
+                'image_url' => $item->image_url,
+                'price' => $item->price,
+                'wood_types' => $woodTypes,
+                'wood_colors' => $woodColors,
+                'fabric_types' => $fabricTypes,
+                'fabric_colors' => $fabricColors,
+                'details' => $item->itemDetail->map(function ($detail) {
+                    return [
+                        'wood_type' => $detail->wood?->woodType?->name,
+                        'wood_color' => $detail->wood?->woodColor?->name,
+                        'wood_dimensions' => [
+                            'length' => $detail->wood_length,
+                            'width' => $detail->wood_width,
+                            'height' => $detail->wood_height,
+                        ],
+                        'fabric_type' => $detail->fabric?->fabricType?->name,
+                        'fabric_color' => $detail->fabric?->fabricColor?->name,
+                        'fabric_dimension' => $detail->fabric_dimension,
+                    ];
+                }),
+            ];
+        });
+
+        return response()->json([
+            'items' => $itemsData,
+        ]);
+    }
+
+
+    public function customizeRoom(Request $request, $roomId)
+    {
+        $user = auth()->user()->customer;
+
+        $room = Room::with('items.itemDetail')->find($roomId);
+        if (!$room) {
+            return response()->json(['message' => 'Room not found'], 404);
+        }
+
+        $itemsData = $request->input('items');
+        if (!$itemsData || !is_array($itemsData)) {
+            return response()->json(['message' => 'Items data is required and must be an array'], 422);
+        }
+
+        $roomCustomization = RoomCustomization::create([
+            'room_id' => $roomId,
+            'customer_id' => $user->id,
+            'final_price' => 0,
+            'final_time' => 0,
+        ]);
+
+        $totalRoomPrice = 0;
+        $totalRoomTime = 0;
+        $customizedItemIds = [];
+
+        foreach ($itemsData as $customizationData) {
+            $item = $room->items->where('id', $customizationData['item_id'])->first();
+            if (!$item) {
+                return response()->json(['message' => 'Item with ID ' . $customizationData['item_id'] . ' not found in room'], 404);
+            }
+
+           
+            $finalPrice = $item->price;
+            $finalTime = $item->time ?? 0;
+
+            $itemDetail = $item->itemDetail->first();
+
+            $newWood = isset($customizationData['wood_id']) ? Wood::find($customizationData['wood_id']) : null;
+            $newFabric = isset($customizationData['fabric_id']) ? Fabric::find($customizationData['fabric_id']) : null;
+
+            $extraLength = $customizationData['add_to_length'] ?? 0;
+            $extraWidth = $customizationData['add_to_width'] ?? 0;
+            $extraHeight = $customizationData['add_to_height'] ?? 0;
+
+            $woodArea = 2 * (
+                $itemDetail->wood_length * $itemDetail->wood_width +
+                $itemDetail->wood_length * $itemDetail->wood_height +
+                $itemDetail->wood_width * $itemDetail->wood_height
+            );
+            $woodAreaM2 = $woodArea / 10000; 
+
+            $newWoodPrice = $newWood ? $woodAreaM2 * $newWood->price_per_meter : 0;
+            $newFabricPrice = $newFabric ? $itemDetail->fabric_dimension * $newFabric->price_per_meter : 0;
+
+            $extraWoodCost = ($extraLength + $extraWidth + $extraHeight) * 0.1 * ($newWood ? $newWood->price_per_meter : 0);
+            $extraFabricCost = ($extraLength + $extraWidth + $extraHeight) * 0.1 * ($newFabric ? $newFabric->price_per_meter : 0);
+
+            $finalPrice += $newWoodPrice + $newFabricPrice + $extraWoodCost + $extraFabricCost;
+
+            CustomizationItem::create([
+                'room_customization_id' => $roomCustomization->id,
+                'item_id' => $item->id,
+                'wood_id' => $newWood?->id,
+                'fabric_id' => $newFabric?->id,
+                'wood_color' => $customizationData['wood_color'] ?? null,
+                'fabric_color' => $customizationData['fabric_color'] ?? null,
+                'add_to_length' => $extraLength,
+                'add_to_width' => $extraWidth,
+                'add_to_height' => $extraHeight,
+                'final_price' => $finalPrice,
+                'final_time' => $finalTime,
+            ]);
+
+            $customizedItemIds[] = $item->id;
+            $totalRoomPrice += $finalPrice;
+            $totalRoomTime += $finalTime;
+        }
+
+        foreach ($room->items as $item) {
+            if (!in_array($item->id, $customizedItemIds)) {
+                $totalRoomPrice += $item->price ?? 0;
+                $totalRoomTime += $item->time ?? 0;
+            }
+        }
+
+        $roomCustomization->update([
+            'final_price' => number_format($totalRoomPrice, 2, '.', ''),
+            'final_time' => $totalRoomTime + 10, 
+        ]);
+
+        return response()->json([
+            'message' => 'Room customized successfully!',
+            'room_customization_id' => $roomCustomization->id,
+            'total_room_price' => number_format($totalRoomPrice, 2, '.', ''),
+            'total_room_time' => $totalRoomTime + 10,
+        ]);
+    }
+
+    public function getRoomDefaults($roomId)
+{
+    $room = Room::with([
+        'items.itemDetail'
+    ])->find($roomId);
+
+    if (!$room) {
+        return response()->json(['message' => 'Room not found'], 404);
+    }
+
+    $data = [
+        'room_id' => $room->id,
+        'room_name' => $room->name,
+        'price' => $room->price,
+
+        'wood_type'    => $room->wood_type,
+        'wood_color'   => $room->wood_color,
+        'fabric_type'  => $room->fabric_type,
+        'fabric_color' => $room->fabric_color,
+
+        'items' => []
+    ];
+
+    foreach ($room->items as $item) {
+        $detail = $item->itemDetail->first();
+
+        $data['items'][] = [
+            'item_id' => $item->id,
+            'item_name' => $item->name,
+            'wood_length' => $detail?->wood_length,
+            'wood_width' => $detail?->wood_width,
+            'wood_height' => $detail?->wood_height,
+            'fabric_dimension' => $detail?->fabric_dimension,
+        ];
+    }
+
+    return response()->json($data);
+}
+
+public function getAvailableWoodTypes($roomId)
+{
+    $room = Room::with('roomDetail.wood')->find($roomId);
+    if (!$room || !$room->roomDetail || !$room->roomDetail->wood) {
+        return response()->json(['message' => 'No wood found'], 404);
+    }
+
+    $woodType = $room->roomDetail->wood->woodType;
+
+    return response()->json([
+        'id' => $woodType->id,
+        'name' => $woodType->name,
+    ]);
+}
+
+public function getWoodColorsByType($woodTypeId)
+{
+    $woods = Wood::with('WoodColor')->where('wood_type_id', $woodTypeId)->get();
+
+    $colors = $woods->pluck('WoodColor')->unique('id')->values()->map(function ($color) {
+        return [
+            'id' => $color->id,
+            'name' => $color->name
+        ];
+    });
+
+    return response()->json($colors);
+}
+public function getAvailableFabricTypes($roomId)
+{
+    $room = Room::with('roomDetail.fabric')->find($roomId);
+    if (!$room || !$room->roomDetail || !$room->roomDetail->fabric) {
+        return response()->json(['message' => 'No fabric found'], 404);
+    }
+
+    $fabricType = $room->roomDetail->fabric->fabricType;
+
+    return response()->json([
+        'id' => $fabricType->id,
+        'name' => $fabricType->name,
+    ]);
+}
+    
+
+public function getFabricColorsByType($fabricTypeId)
+{
+    $fabrics = Fabric::with('fabricColor')->where('fabric_type_id', $fabricTypeId)->get();
+
+    $colors = $fabrics->pluck('fabricColor')->unique('id')->values()->map(function ($color) {
+        return [
+            'id' => $color->id,
+            'name' => $color->name
+        ];
+    });
+
+    return response()->json($colors);
+}
 
 
 }

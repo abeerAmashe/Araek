@@ -37,4 +37,9 @@ class Wood extends Model
     {
         return $this->belongsTo(WoodType::class);
     }
+
+    public function roomDetails()
+    {
+        return $this->hasMany(RoomDetail::class);
+    }
 }

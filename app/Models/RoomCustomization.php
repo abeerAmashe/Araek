@@ -13,14 +13,8 @@ class RoomCustomization extends Model
         'room_id',
         'customer_id',
         'final_price',
-        'final_time'
+        'final_time'        
     ];
-
-    public function customizationItems()
-    {
-        return $this->hasMany(CustomizationItem::class);
-    }
-    
 
     public function room()
     {
@@ -30,5 +24,10 @@ class RoomCustomization extends Model
     public function customer()
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function customizationItems()
+    {
+        return $this->hasMany(CustomizationItem::class);
     }
 }

@@ -20,7 +20,7 @@ class CustomizationOrder extends Model
 
     public function customization()
     {
-        return $this->belongsTo(Customization::class);
+        return $this->belongsTo(customization::class);
     }
 
     public function purchaseOrder()

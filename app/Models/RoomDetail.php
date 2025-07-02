@@ -5,30 +5,19 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Customization extends Model
+class RoomDetail extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'id',
-        'item_id',
+        'room_id',
         'wood_id',
         'fabric_id',
-        'new_length',
-        'new_width',
-        'new_height',
-        'old_price',
-        'final_price',
-        'wood_color',
-        'fabric_color',
-        'customer_id',
     ];
-           
-               
 
-    public function item()
+    public function room()
     {
-        return $this->belongsTo(Item::class);
+        return $this->belongsTo(Room::class);
     }
 
     public function wood()

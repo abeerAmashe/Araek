@@ -4,28 +4,39 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+class CreateCustomizationsTable extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
+    public function up()
     {
-        Schema::create('room_customizations', function (Blueprint $table) {
-            $table->id(); // المعرف الأساسي
-            $table->foreignId('room_id')->constrained('rooms')->onDelete('cascade'); // معرف الغرفة
-            $table->foreignId('customer_id')->constrained('customers')->onDelete('cascade'); // معرف العميل
-            $table->integer('final_price');
-            $table->integer('final_time');            
-            $table->timestamps(); // الحقول الافتراضية للتوقيت
+        Schema::create('customizations', function (Blueprint $table) {
+            $table->id();
+
+            $table->unsignedBigInteger('item_id');
+            $table->unsignedBigInteger('wood_id')->nullable();
+            $table->unsignedBigInteger('fabric_id')->nullable();
+            $table->unsignedBigInteger('customer_id');
+
+            $table->decimal('new_length', 8, 2)->nullable();
+            $table->decimal('new_width', 8, 2)->nullable();
+            $table->decimal('new_height', 8, 2)->nullable();
+
+            $table->decimal('old_price', 10, 2)->default(0);
+            $table->decimal('final_price', 10, 2)->default(0);
+
+            $table->string('wood_color')->nullable();
+            $table->string('fabric_color')->nullable();
+
+            $table->timestamps();
+
+            $table->foreign('item_id')->references('id')->on('items')->onDelete('cascade');
+            $table->foreign('wood_id')->references('id')->on('woods')->onDelete('set null');
+            $table->foreign('fabric_id')->references('id')->on('fabrics')->onDelete('set null');
+            $table->foreign('customer_id')->references('id')->on('customers')->onDelete('cascade');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
-        Schema::dropIfExists('room_customizations');
+        Schema::dropIfExists('customizations');
     }
-};
+}

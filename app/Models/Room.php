@@ -65,15 +65,13 @@ class Room extends Model
         return $this->hasMany(Discount::class);
     }
 
-
-
-    public function roomDetails()
-    {
-        return $this->hasMany(RoomDetail::class);
-    }
-
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function roomDetail()
+    {
+        return $this->hasOne(RoomDetail::class);
     }
 }

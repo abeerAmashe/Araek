@@ -103,85 +103,250 @@ class ItemController extends Controller
         ]);
     }
 
+    // public function customizeItem(Request $request, Item $item)
+    // {
+
+    //     $user = auth()->user()->customer;
+
+    //     if (!$item) {
+    //         return response()->json(['message' => 'item not found'], 200);
+    //     }
+
+    //     $itemDetail = $item->itemDetail;
+    //     if (!$itemDetail) {
+    //         return response()->json(['message' => 'item detail not found'], 200);
+    //     }
+
+    //     $existingCustomization = Customization::where('item_id', $item->id)
+    //         ->where('customer_id', $user->id)
+    //         ->first();
+
+    //     $oldWood = Wood::find($itemDetail->wood_id);
+    //     $newWood = $request->wood_id ? Wood::find($request->wood_id) : null;
+
+    //     if ($request->wood_id && !$newWood) {
+    //         return response()->json(['message' => 'wood type not found'], 200);
+    //     }
+
+    //     $oldFabric = Fabric::find($itemDetail->fabric_id);
+    //     $newFabric = $request->fabric_id ? Fabric::find($request->fabric_id) : null;
+
+    //     if ($request->fabric_id && !$newFabric) {
+    //         return response()->json(['message' => 'fabric type not found'], 200);
+    //     }
+
+    //     $new_wood_Color = $request->wood_color ?? null;
+    //     $new_fabric_Color = $request->fabric_color ?? null;
+
+    //     $woodArea = 2 * ($itemDetail->wood_length * $itemDetail->wood_width
+    //         + $itemDetail->wood_length * $itemDetail->wood_height
+    //         + $itemDetail->wood_width * $itemDetail->wood_height);
+
+    //     $woodAreaM2 = $woodArea / 10_000;
+
+    //     $oldWoodPrice = $oldWood ? $woodAreaM2 * $oldWood->price_per_meter : 0;
+    //     $newWoodPrice = $newWood ? $woodAreaM2 * $newWood->price_per_meter : 0;
+
+    //     $oldFabricPrice = $oldFabric ? ($itemDetail->fabric_dimension) * $oldFabric->price_per_meter : 0;
+    //     $newFabricPrice = $newFabric ? ($itemDetail->fabric_dimension) * $newFabric->price_per_meter : 0;
+
+    //     $extraLength = $request->add_to_length ?? 0;
+    //     $extraWidth = $request->add_to_width ?? 0;
+    //     $extraHeight = $request->add_to_height ?? 0;
+
+    //     $extraWoodCost = ($extraLength + $extraWidth + $extraHeight) * 0.1 * ($newWood ? $newWood->price_per_meter : $oldWood->price_per_meter);
+    //     $extraFabricCost = ($extraLength + $extraWidth + $extraHeight) * 0.1 * ($newFabric ? $newFabric->price_per_meter : $oldFabric->price_per_meter);
+
+    //     $finalPrice = $item->price;
+    //     if ($newWood) {
+    //         $finalPrice = $finalPrice - $oldWoodPrice + $newWoodPrice;
+    //     }
+
+    //     if ($newFabric) {
+    //         $finalPrice = $finalPrice - $oldFabricPrice + $newFabricPrice;
+    //     }
+
+    //     $finalPrice = $finalPrice + $extraWoodCost + $extraFabricCost;
+
+    //     $originalTime = $itemDetail->time;
+    //     $finalTime = $originalTime + 5;
+
+    //     if ($existingCustomization) {
+    //         $existingCustomization->update([
+    //             'wood_id' => $newWood ? $newWood->id : $existingCustomization->wood_id,
+    //             'fabric_id' => $newFabric ? $newFabric->id : $existingCustomization->fabric_id,
+    //             'extra_length' => $extraLength,
+    //             'extra_width' => $extraWidth,
+    //             'extra_height' => $extraHeight,
+    //             'final_price' => $finalPrice,
+    //             'wood_color' => $new_wood_Color ?? $existingCustomization->wood_color,
+    //             'fabric_color' => $new_fabric_Color ?? $existingCustomization->fabric_color,
+
+    //         ]);
+
+    //         $customization = $existingCustomization;
+    //     } else {
+    //         $customization = Customization::create([
+    //             'item_id' => $item->id,
+    //             'customer_id' => $user->id,
+    //             'wood_id' => $newWood ? $newWood->id : null,
+    //             'fabric_id' => $newFabric ? $newFabric->id : null,
+    //             'extra_length' => $extraLength,
+    //             'extra_width' => $extraWidth,
+    //             'extra_height' => $extraHeight,
+    //             'old_price' => $item->price,
+    //             'final_price' => $finalPrice,
+    //             'new_wood_color' => $new_wood_Color,
+    //             'new_fabric_color' => $new_fabric_Color
+    //         ]);
+    //     }
+
+    //     return response()->json([
+    //         'message' => 'Done ^_^',
+    //         'customization' => $customization,
+    //         'final_time' => $finalTime,
+    //         'customization_id' => $customization->id,
+    //     ]);
+    // }
     public function customizeItem(Request $request, Item $item)
     {
-
         $user = auth()->user()->customer;
 
         if (!$item) {
-            return response()->json(['message' => 'item not found'], 200);
+            return response()->json(['message' => 'Item not found'], 404);
         }
 
-        $itemDetail = $item->itemDetail;
-        if (!$itemDetail) {
-            return response()->json(['message' => 'item detail not found'], 200);
+        $itemDetails = $item->itemDetail;
+        if ($itemDetails->isEmpty()) {
+            return response()->json(['message' => 'Item detail not found'], 404);
         }
 
         $existingCustomization = Customization::where('item_id', $item->id)
             ->where('customer_id', $user->id)
             ->first();
 
-        $oldWood = Wood::find($itemDetail->wood_id);
+        $allowedFabricIds = $itemDetails->pluck('fabric_id')->filter()->unique()->toArray();
+        $allowedWoodIds = $itemDetails->pluck('wood_id')->filter()->unique()->toArray();
+
+        if ($request->wood_id && !in_array($request->wood_id, $allowedWoodIds)) {
+            return response()->json(['message' => 'Selected wood is not available for this item'], 422);
+        }
         $newWood = $request->wood_id ? Wood::find($request->wood_id) : null;
-
         if ($request->wood_id && !$newWood) {
-            return response()->json(['message' => 'wood type not found'], 200);
+            return response()->json(['message' => 'Wood type not found'], 404);
         }
 
-        $oldFabric = Fabric::find($itemDetail->fabric_id);
+        if ($request->fabric_id && !in_array($request->fabric_id, $allowedFabricIds)) {
+            return response()->json(['message' => 'Selected fabric is not available for this item'], 422);
+        }
         $newFabric = $request->fabric_id ? Fabric::find($request->fabric_id) : null;
-
         if ($request->fabric_id && !$newFabric) {
-            return response()->json(['message' => 'fabric type not found'], 200);
+            return response()->json(['message' => 'Fabric type not found'], 404);
         }
 
-        $new_wood_Color = $request->wood_color ?? null;
-        $new_fabric_Color = $request->fabric_color ?? null;
+        if ($request->fabric_color && $newFabric) {
+            $allowedFabricColorIds = Fabric::where('fabric_type_id', $newFabric->fabric_type_id)
+                ->pluck('fabric_color_id')
+                ->filter()
+                ->unique()
+                ->toArray();
 
-        $woodArea = 2 * ($itemDetail->wood_length * $itemDetail->wood_width
-            + $itemDetail->wood_length * $itemDetail->wood_height
-            + $itemDetail->wood_width * $itemDetail->wood_height);
+            if (!in_array($request->fabric_color, $allowedFabricColorIds)) {
+                return response()->json(['message' => 'Selected fabric color is not available for this fabric type'], 422);
+            }
+        }
 
+        if ($request->wood_color && $newWood) {
+            $allowedWoodColors = WoodColor::where('wood_id', $newWood->id)
+                ->pluck('id')
+                ->toArray();
+
+            if (!in_array($request->wood_color, $allowedWoodColors)) {
+                return response()->json(['message' => 'Selected wood color is not available for this wood type'], 422);
+            }
+        }
+
+        $itemDetail = $itemDetails->first();
+
+        $oldWood = Wood::find($itemDetail->wood_id);
+        $oldFabric = Fabric::find($itemDetail->fabric_id);
+
+        // أبعاد الخشب الأصلية
+        $originalLength = $itemDetail->wood_length;
+        $originalWidth = $itemDetail->wood_width;
+        $originalHeight = $itemDetail->wood_height;
+
+        // أبعاد الخشب الجديدة
+        $newLength = $request->new_length ?? $originalLength;
+        $newWidth  = $request->new_width ?? $originalWidth;
+        $newHeight = $request->new_height ?? $originalHeight;
+
+        // الفرق بين الأبعاد
+        $diffs = [
+            $newLength - $originalLength,
+            $newWidth - $originalWidth,
+            $newHeight - $originalHeight,
+        ];
+
+        // تعديل السعر بحسب اختلاف الأبعاد
+        $woodPricePerMeter = $newWood?->price_per_meter ?? $oldWood?->price_per_meter ?? 0;
+        $dimensionAdjustment = 0;
+        foreach ($diffs as $diff) {
+            $dimensionAdjustment += $diff * 0.1 * $woodPricePerMeter;
+        }
+
+        // حساب مساحة الخشب الأصلية
+        $woodArea = 2 * (
+            $originalLength * $originalWidth +
+            $originalLength * $originalHeight +
+            $originalWidth * $originalHeight
+        );
         $woodAreaM2 = $woodArea / 10_000;
 
         $oldWoodPrice = $oldWood ? $woodAreaM2 * $oldWood->price_per_meter : 0;
         $newWoodPrice = $newWood ? $woodAreaM2 * $newWood->price_per_meter : 0;
 
-        $oldFabricPrice = $oldFabric ? ($itemDetail->fabric_dimension) * $oldFabric->price_per_meter : 0;
-        $newFabricPrice = $newFabric ? ($itemDetail->fabric_dimension) * $newFabric->price_per_meter : 0;
+        // تعديل أبعاد القماش تلقائياً بناءً على تغييرات الطول والعرض للخشب
+        $fabricLengthDiff = $newLength - $originalLength;
+        $fabricWidthDiff = $newWidth - $originalWidth;
 
-        $extraLength = $request->add_to_length ?? 0;
-        $extraWidth = $request->add_to_width ?? 0;
-        $extraHeight = $request->add_to_height ?? 0;
+        $fabricOriginalLength = $originalLength;
+        $fabricOriginalWidth = $originalWidth;
 
-        $extraWoodCost = ($extraLength + $extraWidth + $extraHeight) * 0.1 * ($newWood ? $newWood->price_per_meter : $oldWood->price_per_meter);
-        $extraFabricCost = ($extraLength + $extraWidth + $extraHeight) * 0.1 * ($newFabric ? $newFabric->price_per_meter : $oldFabric->price_per_meter);
+        $newFabricLength = $fabricOriginalLength + $fabricLengthDiff;
+        $newFabricWidth = $fabricOriginalWidth + $fabricWidthDiff;
+
+        $newFabricArea = $newFabricLength * $newFabricWidth;
+        $newFabricAreaM2 = $newFabricArea / 10_000;
+
+        $oldFabricPrice = $oldFabric ? $itemDetail->fabric_dimension * $oldFabric->price_per_meter : 0;
+        $newFabricPrice = $newFabric ? $newFabricAreaM2 * $newFabric->price_per_meter : 0;
 
         $finalPrice = $item->price;
         if ($newWood) {
             $finalPrice = $finalPrice - $oldWoodPrice + $newWoodPrice;
         }
-
         if ($newFabric) {
             $finalPrice = $finalPrice - $oldFabricPrice + $newFabricPrice;
         }
+        $finalPrice += $dimensionAdjustment;
 
-        $finalPrice = $finalPrice + $extraWoodCost + $extraFabricCost;
-
-        $originalTime = $itemDetail->time;
+        $originalTime = $itemDetail->time ?? 0;
         $finalTime = $originalTime + 5;
+
+        $newWoodColor = $request->wood_color ?? null;
+        $newFabricColor = $request->fabric_color ?? null;
 
         if ($existingCustomization) {
             $existingCustomization->update([
-                'wood_id' => $newWood ? $newWood->id : $existingCustomization->wood_id,
-                'fabric_id' => $newFabric ? $newFabric->id : $existingCustomization->fabric_id,
-                'extra_length' => $extraLength,
-                'extra_width' => $extraWidth,
-                'extra_height' => $extraHeight,
+                'wood_id' => $newWood?->id ?? $existingCustomization->wood_id,
+                'fabric_id' => $newFabric?->id ?? $existingCustomization->fabric_id,
+                'new_length' => $newLength,
+                'new_width' => $newWidth,
+                'new_height' => $newHeight,
                 'final_price' => $finalPrice,
-                'wood_color' => $new_wood_Color ?? $existingCustomization->wood_color,
-                'fabric_color' => $new_fabric_Color ?? $existingCustomization->fabric_color,
-
+                'wood_color' => $newWoodColor ?? $existingCustomization->wood_color,
+                'fabric_color' => $newFabricColor ?? $existingCustomization->fabric_color,
             ]);
 
             $customization = $existingCustomization;
@@ -189,25 +354,27 @@ class ItemController extends Controller
             $customization = Customization::create([
                 'item_id' => $item->id,
                 'customer_id' => $user->id,
-                'wood_id' => $newWood ? $newWood->id : null,
-                'fabric_id' => $newFabric ? $newFabric->id : null,
-                'extra_length' => $extraLength,
-                'extra_width' => $extraWidth,
-                'extra_height' => $extraHeight,
+                'wood_id' => $newWood?->id,
+                'fabric_id' => $newFabric?->id,
+                'new_length' => $newLength,
+                'new_width' => $newWidth,
+                'new_height' => $newHeight,
                 'old_price' => $item->price,
                 'final_price' => $finalPrice,
-                'new_wood_color' => $new_wood_Color,
-                'new_fabric_color' => $new_fabric_Color
+                'wood_color' => $newWoodColor,
+                'fabric_color' => $newFabricColor,
             ]);
         }
 
         return response()->json([
-            'message' => 'Done ^_^',
+            'message' => 'Customization done successfully.',
             'customization' => $customization,
             'final_time' => $finalTime,
             'customization_id' => $customization->id,
         ]);
     }
+
+
     public function getItemCustomization($itemId)
     {
         $user = auth()->user();
@@ -503,28 +670,82 @@ class ItemController extends Controller
     }
 
     public function getWoodColorsByType($woodTypeId)
-{
-    $woods = Wood::with('woodColor')
-        ->where('wood_type_id', $woodTypeId)
-        ->get();
+    {
+        $woods = Wood::with('woodColor')
+            ->where('wood_type_id', $woodTypeId)
+            ->get();
 
-    // نحصل على كل الألوان مع سعرها (نختار أول سعر من كل مجموعة لون)
-    $colors = $woods
-        ->filter(fn($wood) => $wood->woodColor)
-        ->groupBy('wood_color_id')
-        ->map(function ($group) {
-            $wood = $group->first(); // أول عنصر يحمل نفس اللون
-            return [
-                'id' => $wood->woodColor->id,
-                'name' => $wood->woodColor->name,
-                'price_per_meter' => $wood->price_per_meter,
-            ];
-        })
-        ->values();
+        $colors = $woods
+            ->filter(fn($wood) => $wood->woodColor)
+            ->groupBy('wood_color_id')
+            ->map(function ($group) {
+                $wood = $group->first();
+                return [
+                    'id' => $wood->woodColor->id,
+                    'name' => $wood->woodColor->name,
+                    'price_per_meter' => $wood->price_per_meter,
+                ];
+            })
+            ->values();
 
-    return response()->json([
-        'wood_colors' => $colors,
-    ]);
-}
+        return response()->json([
+            'wood_colors' => $colors,
+        ]);
+    }
 
+    public function getFabricTypesByItem($itemId)
+    {
+        $item = Item::with('itemDetail.fabric.fabricType')->find($itemId);
+
+        if (!$item) {
+            return response()->json(['message' => 'Item not found'], 404);
+        }
+
+        $fabrics = collect();
+
+        foreach ($item->itemDetail as $detail) {
+            if ($detail->fabric && $detail->fabric->fabricType) {
+                $fabrics->push($detail->fabric);
+            }
+        }
+
+        $fabricTypes = $fabrics
+            ->groupBy('fabric_type_id')
+            ->map(function ($group) {
+                $fabric = $group->first();
+                return [
+                    'id' => $fabric->fabricType->id,
+                    'name' => $fabric->fabricType->name,
+                ];
+            })
+            ->values();
+
+        return response()->json([
+            'fabric_types' => $fabricTypes,
+        ]);
+    }
+
+    public function getFabricColorsByType($fabricTypeId)
+    {
+        $fabrics = Fabric::with('fabricColor')
+            ->where('fabric_type_id', $fabricTypeId)
+            ->get();
+
+        $colors = $fabrics
+            ->filter(fn($fabric) => $fabric->fabricColor)
+            ->groupBy('fabric_color_id')
+            ->map(function ($group) {
+                $fabric = $group->first();
+                return [
+                    'id' => $fabric->fabricColor->id,
+                    'name' => $fabric->fabricColor->name,
+                    'price_per_meter' => $fabric->price_per_meter,
+                ];
+            })
+            ->values();
+
+        return response()->json([
+            'fabric_colors' => $colors,
+        ]);
+    }
 }

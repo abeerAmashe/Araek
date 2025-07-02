@@ -53,25 +53,37 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 //customize
+//Item
+Route::get('/items/wood-types/{itemId}', [ItemController::class, 'getWoodTypesForItem']);
+Route::get('/wood-types/details/{woodTypeId}', [ItemController::class, 'getWoodColorsByType']);
 
-Route::get('/getAutoDetails/{itemId}', [ItemController::class, 'getAutoDetails']);
-Route::get('/getMaterialOptions/{itemId}', [ItemController::class, 'getMaterialOptions']);
-
-
-Route::get('/getWoodTypes/{itemId}', [ItemController::class, 'getWoodTypesForItem']);
-Route::get('/getWoodTypeColor/{woodTypeId}', [ItemController::class, 'getWoodColorsByType']);
+Route::get('/items/fabric-types/{itemId}', [ItemController::class, 'getFabricTypesByItem']);
+Route::get('/fabric-types/details/{fabricTypeId}', [ItemController::class, 'getFabricColorsByType']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/customizeItem/{item}', [ItemController::class, 'customizeItem']);
-    Route::post('/customizeRoom/{item}', [RoomController::class, 'customizeRoom']);
     Route::get('/getItemCustomization/{itemId}', [ItemController::class, 'getItemCustomization']);
+
+});
+
+//Room
+
+Route::get('/getRoomItemsWithOptions/{roomId}', [RoomController::class, 'getRoomItemsWithOptions']);
+Route::get('/getRoomDefaults/{roomId}',[RoomController::class,'getRoomDefaults']);
+
+
+Route::get('/rooms/{roomId}/wood-types', [RoomController::class, 'getAvailableWoodTypes']);
+Route::get('/wood-types/{woodTypeId}/colors', [RoomController::class, 'getWoodColorsByType']);
+Route::get('/rooms/{roomId}/fabric-types', [RoomController::class, 'getAvailableFabricTypes']);
+Route::get('/fabric-types/{fabricTypeId}/colors', [RoomController::class, 'getFabricColorsByType']);
+
+
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/customizeRoom/{item}', [RoomController::class, 'customizeRoom']);
     Route::get('/getRoomAfterCustomization/{roomCustomizationId}', [RoomController::class, 'getRoomAfterCustomization']);
     Route::post('/customization-response/{itemId}', [ItemController::class, 'handleCustomizationResponse']);
 });
-
-
-
-
 
 
 

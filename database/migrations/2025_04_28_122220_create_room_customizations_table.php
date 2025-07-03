@@ -9,30 +9,21 @@ class CreateRoomCustomizationsTable extends Migration
     public function up()
     {
         Schema::create('room_customizations', function (Blueprint $table) {
-            $table->id();
+    $table->id();
+    $table->foreignId('room_id')->constrained()->onDelete('cascade');
+    $table->foreignId('customer_id')->constrained()->onDelete('cascade');
 
-            $table->unsignedBigInteger('item_id');
-            $table->unsignedBigInteger('wood_id')->nullable();
-            $table->unsignedBigInteger('fabric_id')->nullable();
-            $table->unsignedBigInteger('customer_id');
+    $table->foreignId('wood_type_id')->constrained('wood_types')->onDelete('restrict');
+    $table->foreignId('wood_color_id')->constrained('wood_colors')->onDelete('restrict');
 
-            $table->decimal('new_length', 8, 2)->nullable();
-            $table->decimal('new_width', 8, 2)->nullable();
-            $table->decimal('new_height', 8, 2)->nullable();
+    $table->foreignId('fabric_type_id')->constrained('fabric_types')->onDelete('restrict');
+    $table->foreignId('fabric_color_id')->constrained('fabric_colors')->onDelete('restrict');
 
-            $table->decimal('old_price', 10, 2)->default(0);
-            $table->decimal('final_price', 10, 2)->default(0);
+    $table->decimal('final_price', 10, 2);
+    $table->integer('final_time');
+    $table->timestamps();
+});
 
-            $table->string('wood_color')->nullable();
-            $table->string('fabric_color')->nullable();
-
-            $table->timestamps();
-
-            $table->foreign('item_id')->references('id')->on('items')->onDelete('cascade');
-            $table->foreign('wood_id')->references('id')->on('woods')->onDelete('set null');
-            $table->foreign('fabric_id')->references('id')->on('fabrics')->onDelete('set null');
-            $table->foreign('customer_id')->references('id')->on('customers')->onDelete('cascade');
-        });
     }
 
     public function down()

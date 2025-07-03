@@ -10,6 +10,7 @@ use App\Models\Color;
 use App\Models\FabricColor;
 use App\Models\FabricType;
 use App\Models\PlaceCost;
+use App\Models\RoomOrder;
 use App\Models\WoodColor;
 use App\Models\WoodType;
 
@@ -64,6 +65,7 @@ class DatabaseSeeder extends Seeder
         FabricTypeSeeder::class,
         WoodColorSeeder::class,
         WoodTypeSeeder::class,
+        RoomSeeder::class,
         ItemTypeSeeder::class,
         ItemDetailSeeder::class,
         PurchaseOrderSeeder::class,

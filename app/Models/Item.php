@@ -17,6 +17,9 @@ class Item extends Model
         'price',
         'description',
         'count',
+        'glb_url',  
+        'thumbnail_url'
+
     ];
 
     protected $casts = [
@@ -37,5 +40,4 @@ class Item extends Model
     {
         return $this->hasMany(ItemDetail::class);
     }
-
 }

@@ -19,6 +19,120 @@ use Illuminate\Support\Facades\DB;
 
 class RoomController extends Controller
 {
+    public function getRoomDefaults($roomId)
+    {
+        $room = Room::with([
+            'items.itemDetail'
+        ])->find($roomId);
+
+        if (!$room) {
+            return response()->json(['message' => 'Room not found'], 404);
+        }
+
+        $data = [
+            'room_id' => $room->id,
+            'room_name' => $room->name,
+            'price' => $room->price,
+
+            'wood_type'    => $room->wood_type,
+            'wood_color'   => $room->wood_color,
+            'fabric_type'  => $room->fabric_type,
+            'fabric_color' => $room->fabric_color,
+
+            'items' => []
+        ];
+
+        foreach ($room->items as $item) {
+            $detail = $item->itemDetail->first();
+
+            $data['items'][] = [
+                'item_id' => $item->id,
+                'item_name' => $item->name,
+                'wood_length' => $detail?->wood_length,
+                'wood_width' => $detail?->wood_width,
+                'wood_height' => $detail?->wood_height,
+                'fabric_dimension' => $detail?->fabric_dimension,
+            ];
+        }
+
+        return response()->json($data);
+    }
+
+    public function getAvailableWoodTypes($roomId)
+    {
+        $room = Room::with('roomDetail.wood')->find($roomId);
+        if (!$room || !$room->roomDetail || !$room->roomDetail->wood) {
+            return response()->json(['message' => 'No wood found'], 404);
+        }
+
+        $woodType = $room->roomDetail->wood->woodType;
+
+        return response()->json([
+            'wood_type_id' => $woodType->id,
+            'type' => $woodType->name,
+        ]);
+    }
+
+    public function getWoodColorsByType($woodTypeId)
+    {
+        $woods = Wood::with('WoodColor')
+            ->where('wood_type_id', $woodTypeId)
+            ->get();
+        return $woods;
+
+        $colors = $woods->map->WoodColor
+            ->filter()
+            ->unique('id')
+            ->values()
+            ->map(function ($color) {
+                return [
+                    'color_id' => $color->id,
+                    'color' => $color->name
+                ];
+            });
+
+        return response()->json($colors);
+    }
+
+
+    public function getAvailableFabricTypes($roomId)
+    {
+        $room = Room::with('roomDetail.fabric')->find($roomId);
+        if (!$room || !$room->roomDetail || !$room->roomDetail->fabric) {
+            return response()->json(['message' => 'No fabric found'], 404);
+        }
+
+        $fabricType = $room->roomDetail->fabric->fabricType;
+
+        return response()->json([
+            'id' => $fabricType->id,
+            'type' => $fabricType->name,
+        ]);
+    }
+
+
+    public function getFabricColorsByType($fabricTypeId)
+    {
+        $fabrics = Fabric::with('fabricColor')
+            ->where('fabric_type_id', $fabricTypeId)
+            ->get();
+
+        $colorsWithPrices = $fabrics->map(function ($fabric) {
+            return [
+                'fabric_color_id' => $fabric->fabricColor->id,
+                'color' => $fabric->fabricColor->name,
+                'price_per_meter' => $fabric->price_per_meter,
+            ];
+        })
+            ->unique('id')
+            ->values();
+
+        return response()->json($colorsWithPrices);
+    }
+
+
+
+
     public function showFurniture()
     {
         $response = Room::with(['items' => function ($q) {
@@ -581,7 +695,7 @@ class RoomController extends Controller
                 return response()->json(['message' => 'Item with ID ' . $customizationData['item_id'] . ' not found in room'], 404);
             }
 
-           
+
             $finalPrice = $item->price;
             $finalTime = $item->time ?? 0;
 
@@ -599,7 +713,7 @@ class RoomController extends Controller
                 $itemDetail->wood_length * $itemDetail->wood_height +
                 $itemDetail->wood_width * $itemDetail->wood_height
             );
-            $woodAreaM2 = $woodArea / 10000; 
+            $woodAreaM2 = $woodArea / 10000;
 
             $newWoodPrice = $newWood ? $woodAreaM2 * $newWood->price_per_meter : 0;
             $newFabricPrice = $newFabric ? $itemDetail->fabric_dimension * $newFabric->price_per_meter : 0;
@@ -637,7 +751,7 @@ class RoomController extends Controller
 
         $roomCustomization->update([
             'final_price' => number_format($totalRoomPrice, 2, '.', ''),
-            'final_time' => $totalRoomTime + 10, 
+            'final_time' => $totalRoomTime + 10,
         ]);
 
         return response()->json([
@@ -647,103 +761,4 @@ class RoomController extends Controller
             'total_room_time' => $totalRoomTime + 10,
         ]);
     }
-
-    public function getRoomDefaults($roomId)
-{
-    $room = Room::with([
-        'items.itemDetail'
-    ])->find($roomId);
-
-    if (!$room) {
-        return response()->json(['message' => 'Room not found'], 404);
-    }
-
-    $data = [
-        'room_id' => $room->id,
-        'room_name' => $room->name,
-        'price' => $room->price,
-
-        'wood_type'    => $room->wood_type,
-        'wood_color'   => $room->wood_color,
-        'fabric_type'  => $room->fabric_type,
-        'fabric_color' => $room->fabric_color,
-
-        'items' => []
-    ];
-
-    foreach ($room->items as $item) {
-        $detail = $item->itemDetail->first();
-
-        $data['items'][] = [
-            'item_id' => $item->id,
-            'item_name' => $item->name,
-            'wood_length' => $detail?->wood_length,
-            'wood_width' => $detail?->wood_width,
-            'wood_height' => $detail?->wood_height,
-            'fabric_dimension' => $detail?->fabric_dimension,
-        ];
-    }
-
-    return response()->json($data);
-}
-
-public function getAvailableWoodTypes($roomId)
-{
-    $room = Room::with('roomDetail.wood')->find($roomId);
-    if (!$room || !$room->roomDetail || !$room->roomDetail->wood) {
-        return response()->json(['message' => 'No wood found'], 404);
-    }
-
-    $woodType = $room->roomDetail->wood->woodType;
-
-    return response()->json([
-        'id' => $woodType->id,
-        'name' => $woodType->name,
-    ]);
-}
-
-public function getWoodColorsByType($woodTypeId)
-{
-    $woods = Wood::with('WoodColor')->where('wood_type_id', $woodTypeId)->get();
-
-    $colors = $woods->pluck('WoodColor')->unique('id')->values()->map(function ($color) {
-        return [
-            'id' => $color->id,
-            'name' => $color->name
-        ];
-    });
-
-    return response()->json($colors);
-}
-public function getAvailableFabricTypes($roomId)
-{
-    $room = Room::with('roomDetail.fabric')->find($roomId);
-    if (!$room || !$room->roomDetail || !$room->roomDetail->fabric) {
-        return response()->json(['message' => 'No fabric found'], 404);
-    }
-
-    $fabricType = $room->roomDetail->fabric->fabricType;
-
-    return response()->json([
-        'id' => $fabricType->id,
-        'name' => $fabricType->name,
-    ]);
-}
-    
-
-public function getFabricColorsByType($fabricTypeId)
-{
-    $fabrics = Fabric::with('fabricColor')->where('fabric_type_id', $fabricTypeId)->get();
-
-    $colors = $fabrics->pluck('fabricColor')->unique('id')->values()->map(function ($color) {
-        return [
-            'id' => $color->id,
-            'name' => $color->name
-        ];
-    });
-
-    return response()->json($colors);
-}
-
-
 }

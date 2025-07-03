@@ -748,4 +748,65 @@ class ItemController extends Controller
             'fabric_colors' => $colors,
         ]);
     }
+
+   public function uploadGlb(Request $request, $id)
+{
+    $item = Item::findOrFail($id);
+
+    if (!$request->hasFile('glb_file')) {
+        return response()->json(['error' => 'No GLB file uploaded'], 400);
+    }
+
+    $glbFile = $request->file('glb_file');
+
+    if ($glbFile->getClientOriginalExtension() !== 'glb') {
+        return response()->json(['error' => 'File must have .glb extension'], 400);
+    }
+
+    $glbFilename = 'item_' . $item->id . '.glb';
+    $glbPath = $glbFile->storeAs('glb_models', $glbFilename, 'public');
+    $glbUrl = asset('storage/glb_models/' . $glbFilename);
+
+    $thumbnailUrl = null;
+    if ($request->hasFile('thumbnail')) {
+        $thumbnailFile = $request->file('thumbnail');
+
+        $allowedExts = ['jpg', 'jpeg', 'png', 'webp'];
+        if (!in_array($thumbnailFile->getClientOriginalExtension(), $allowedExts)) {
+            return response()->json(['error' => 'Invalid thumbnail image type'], 400);
+        }
+
+        $thumbFilename = 'item_' . $item->id . '_thumb.' . $thumbnailFile->getClientOriginalExtension();
+        $thumbPath = $thumbnailFile->storeAs('thumbnails', $thumbFilename, 'public');
+        $thumbnailUrl = asset('storage/thumbnails/' . $thumbFilename);
+    }
+
+    $item->glb_url = $glbUrl;
+    if ($thumbnailUrl) {
+        $item->thumbnail_url = $thumbnailUrl;
+    }
+    $item->save();
+
+    return response()->json([
+        'message' => 'GLB and thumbnail uploaded successfully',
+        'glb_url' => $glbUrl,
+        'thumbnail_url' => $thumbnailUrl
+    ]);
+}
+
+
+
+   public function getGlbItem($id)
+{
+    $item = Item::findOrFail($id);
+
+    return response()->json([
+        'id' => $item->id,
+        'name' => $item->name,
+        'prefabUrl' => $item->glb_url,
+        'thumbnailUrl' => $item->thumbnail_url,
+        'scale' => 1.0
+    ]);
+}
+
 }

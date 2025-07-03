@@ -9,7 +9,7 @@ class Wood extends Model
 {
     use HasFactory;
 
-    protected $table = 'woods'; // تأكيد اسم الجدول الجمع
+    protected $table = 'woods'; 
 
     protected $fillable = [
         'name',

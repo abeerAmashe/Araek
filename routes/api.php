@@ -68,15 +68,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
 //Room
 
-Route::get('/getRoomItemsWithOptions/{roomId}', [RoomController::class, 'getRoomItemsWithOptions']);
-Route::get('/getRoomDefaults/{roomId}',[RoomController::class,'getRoomDefaults']);
-
-
 Route::get('/rooms/{roomId}/wood-types', [RoomController::class, 'getAvailableWoodTypes']);
-Route::get('/wood-types/{woodTypeId}/colors', [RoomController::class, 'getWoodColorsByType']);
-Route::get('/rooms/{roomId}/fabric-types', [RoomController::class, 'getAvailableFabricTypes']);
-Route::get('/fabric-types/{fabricTypeId}/colors', [RoomController::class, 'getFabricColorsByType']);
-
+Route::get('/room-wood-colors/{woodTypeId}', [RoomController::class, 'getWoodColorsByType']);
+Route::get('/rooms-fabric-types/{roomId}', [RoomController::class, 'getAvailableFabricTypes']);
+Route::get('/fabric-types-colors/{fabricTypeId}', [RoomController::class, 'getFabricColorsByType']);
 
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -85,6 +80,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/customization-response/{itemId}', [ItemController::class, 'handleCustomizationResponse']);
 });
 
+
+//AR
+Route::post('/uploadGlb/{id}', [ItemController::class, 'uploadGlb']);
+
+Route::get('/getGlbItem/{id}', [ItemController::class, 'getGlbItem']);
 
 
 

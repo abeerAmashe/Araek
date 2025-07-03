@@ -17,6 +17,8 @@ class CreateItemsTable extends Migration
             $table->string('image_url')->nullable();
             $table->text('description')->nullable();
             $table->integer('count')->default(0);
+            $table->string('glb_url')->nullable();
+            $table->string('thumbnail_url')->nullable();
             $table->timestamps();
         });
     }
@@ -25,4 +27,4 @@ class CreateItemsTable extends Migration
     {
         Schema::dropIfExists('items');
     }
-} 
+}

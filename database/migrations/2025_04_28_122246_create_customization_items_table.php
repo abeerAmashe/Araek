@@ -13,10 +13,9 @@ class CreateCustomizationItemsTable extends Migration
 
             $table->foreignId('room_customization_id')->constrained()->onDelete('cascade');
             $table->foreignId('item_id')->constrained()->onDelete('cascade');
-
-            $table->decimal('add_to_length', 8, 2)->default(0);
-            $table->decimal('add_to_width', 8, 2)->default(0);
-            $table->decimal('add_to_height', 8, 2)->default(0);
+            $table->decimal('new_length', 8, 2)->default(0);
+            $table->decimal('new_width', 8, 2)->default(0);
+            $table->decimal('new_height', 8, 2)->default(0);
 
             $table->timestamps();
         });

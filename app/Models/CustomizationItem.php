@@ -12,9 +12,9 @@ class CustomizationItem extends Model
     protected $fillable = [
         'room_customization_id',
         'item_id',
-        'add_to_length',
-        'add_to_width',
-        'add_to_height',
+        'new_length',
+        'new_width',
+        'new_height',
     ];
 
     public function roomCustomization()

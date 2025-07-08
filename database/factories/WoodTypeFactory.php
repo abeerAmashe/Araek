@@ -9,7 +9,8 @@ class WoodTypeFactory extends Factory
 {
     protected $model = WoodType::class;
 
-    public function definition()
+    public function definition()           
+
     {
         return [
             'name' => $this->faker->randomElement([
@@ -22,6 +23,7 @@ class WoodTypeFactory extends Factory
                 'Maple',
                 'Birch',
             ]),
+             'price_per_meter' => $this->faker->randomFloat(2, 30, 300),
         ];
     }
 }

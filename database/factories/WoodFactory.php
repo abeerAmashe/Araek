@@ -15,7 +15,6 @@ class WoodFactory extends Factory
     {
         return [
             'name' => $this->faker->word(),
-            'price_per_meter' => $this->faker->randomFloat(2, 30, 300),
             'wood_color_id' => WoodColor::factory(),
             'wood_type_id' => WoodType::factory(),
         ];

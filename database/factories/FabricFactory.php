@@ -15,7 +15,6 @@ class FabricFactory extends Factory
     {
         return [
             'name' => $this->faker->word(),
-            'price_per_meter' => $this->faker->randomFloat(2, 5, 100),
             'fabric_color_id' => FabricColor::factory(),
             'fabric_type_id' => FabricType::factory(),
         ];

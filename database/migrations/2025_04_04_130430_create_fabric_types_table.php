@@ -11,6 +11,7 @@ class CreateFabricTypesTable extends Migration
         Schema::create('fabric_types', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->decimal('price_per_meter', 10, 2);
             $table->timestamps();
         });
     }

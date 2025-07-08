@@ -17,7 +17,10 @@ class ItemDetail extends Model
         'wood_length',
         'wood_width',
         'wood_height',
+        'fabric_length',
+        'fabric_width',
         'fabric_dimension',
+        'wood_area_m2'
     ];
 
     public function item()

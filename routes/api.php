@@ -54,6 +54,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 //customize
 //Item
+Route::get('/getAutoDetails/{itemId}',[ItemController::class,'getAutoDetails']);
 Route::get('/items/wood-types/{itemId}', [ItemController::class, 'getWoodTypesForItem']);
 Route::get('/wood-types/details/{woodTypeId}', [ItemController::class, 'getWoodColorsByType']);
 
@@ -67,7 +68,7 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 //Room
-
+Route::get('getRoomDefaults/{roomId}',[RoomController::class,'getRoomDefaults']);
 Route::get('/rooms/{roomId}/wood-types', [RoomController::class, 'getAvailableWoodTypes']);
 Route::get('/room-wood-colors/{woodTypeId}', [RoomController::class, 'getWoodColorsByType']);
 Route::get('/rooms-fabric-types/{roomId}', [RoomController::class, 'getAvailableFabricTypes']);
@@ -77,7 +78,7 @@ Route::get('/fabric-types-colors/{fabricTypeId}', [RoomController::class, 'getFa
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/customizeRoom/{item}', [RoomController::class, 'customizeRoom']);
     Route::get('/getRoomAfterCustomization/{roomCustomizationId}', [RoomController::class, 'getRoomAfterCustomization']);
-    Route::post('/customization-response/{itemId}', [ItemController::class, 'handleCustomizationResponse']);
+    // Route::post('/customization-response/{itemId}', [ItemController::class, 'handleCustomizationResponse']);
 });
 
 

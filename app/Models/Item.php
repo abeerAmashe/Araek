@@ -18,7 +18,8 @@ class Item extends Model
         'description',
         'count',
         'glb_url',  
-        'thumbnail_url'
+        'thumbnail_url',
+        'time'
 
     ];
 

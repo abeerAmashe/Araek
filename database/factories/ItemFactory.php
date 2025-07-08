@@ -21,6 +21,7 @@ class ItemFactory extends Factory
             'image_url' => $this->faker->imageUrl(640, 480, 'furniture', true),
             'description' => $this->faker->paragraph(),
             'count' => $this->faker->numberBetween(0, 20),
+            'time'=>$this->faker->numberBetween(0, 20),
         ];
     }
 }

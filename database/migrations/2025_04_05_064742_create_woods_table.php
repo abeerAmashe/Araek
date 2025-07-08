@@ -11,7 +11,6 @@ class CreateWoodsTable extends Migration
         Schema::create('woods', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->decimal('price_per_meter', 10, 2);
             $table->foreignId('wood_color_id')->constrained()->onDelete('cascade');
             $table->foreignId('wood_type_id')->constrained()->onDelete('cascade');
             $table->timestamps();

@@ -11,6 +11,7 @@ class CreateWoodTypesTable extends Migration
         Schema::create('wood_types', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->decimal('price_per_meter', 10, 2);
             $table->timestamps();
         });
     }

@@ -13,18 +13,23 @@ class Customization extends Model
         'id',
         'item_id',
         'wood_id',
+        'wood_type_id',
+        'wood_color_id',
         'fabric_id',
+        'fabric_type_id',
+        'fabric_color_id',
         'new_length',
         'new_width',
         'new_height',
         'old_price',
         'final_price',
+        'final_time',
         'wood_color',
         'fabric_color',
         'customer_id',
     ];
-           
-               
+
+
 
     public function item()
     {

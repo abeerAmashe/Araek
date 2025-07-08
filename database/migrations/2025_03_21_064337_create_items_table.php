@@ -19,6 +19,7 @@ class CreateItemsTable extends Migration
             $table->integer('count')->default(0);
             $table->string('glb_url')->nullable();
             $table->string('thumbnail_url')->nullable();
+            $table->integer('time');
             $table->timestamps();
         });
     }

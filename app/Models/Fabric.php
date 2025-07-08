@@ -11,7 +11,6 @@ class Fabric extends Model
 
     protected $fillable = [
         'name',
-        'price_per_meter',
         'fabric_color_id',
         'fabric_type_id'
     ];

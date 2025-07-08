@@ -22,6 +22,10 @@ class ItemDetailFactory extends Factory
             'wood_width' => $this->faker->randomFloat(2, 10, 200),
             'wood_height' => $this->faker->randomFloat(2, 10, 200),
             'fabric_dimension' => $this->faker->randomElement(['100x100', '200x150', '150x150']),
+            'fabric_width'=>$this->faker->randomFloat(2, 10, 200),
+            'fabric_length'=>$this->faker->randomFloat(2, 10, 200),
+            'wood_area_m2' => $this->faker->numberBetween(1, 10),
+
         ];
     }
 }

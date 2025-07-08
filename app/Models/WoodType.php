@@ -12,7 +12,8 @@ class WoodType extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name'
+        'name',
+        'price_per_meter',
     ];
 
     public function wood()

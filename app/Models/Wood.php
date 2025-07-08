@@ -9,11 +9,10 @@ class Wood extends Model
 {
     use HasFactory;
 
-    protected $table = 'woods'; 
+    protected $table = 'woods';
 
     protected $fillable = [
         'name',
-        'price_per_meter',
         'wood_color_id',
         'wood_type_id'
     ];

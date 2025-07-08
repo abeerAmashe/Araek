@@ -11,7 +11,9 @@ class FabricType extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name'
+        'name',
+        'price_per_meter',
+
     ];
 
     public function fabrics()

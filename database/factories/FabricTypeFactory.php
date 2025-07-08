@@ -22,6 +22,8 @@ class FabricTypeFactory extends Factory
                 'Denim',
                 'Chiffon',
             ]),
+            'price_per_meter' => $this->faker->randomFloat(2, 5, 100),
+
         ];
     }
 }

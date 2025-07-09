@@ -202,104 +202,106 @@ class ItemController extends Controller
     // }
 
 
-    public function customizeItem(Request $request, Item $item)
-{
-    $customer_id = auth()->user()->customer->id;
+    // public function customizeItem(Request $request, Item $item)
+    // {
+    //     $customer_id = auth()->user()->customer->id;
 
-    $request->validate([
-        'wood_type_id'     => 'nullable|exists:wood_types,id',
-        'fabric_type_id'   => 'nullable|exists:fabric_types,id',
-        'new_length'       => 'nullable|numeric',
-        'new_width'        => 'nullable|numeric',
-        'new_height'       => 'nullable|numeric',
-        'wood_color_id'    => 'nullable|exists:wood_colors,id',
-        'fabric_color_id'  => 'nullable|exists:fabric_colors,id',
-    ]);
+    //     $request->validate([
+    //         'wood_type_id'     => 'nullable|exists:wood_types,id',
+    //         'fabric_type_id'   => 'nullable|exists:fabric_types,id',
+    //         'new_length'       => 'nullable|numeric',
+    //         'new_width'        => 'nullable|numeric',
+    //         'new_height'       => 'nullable|numeric',
+    //         'wood_color_id'    => 'nullable|exists:wood_colors,id',
+    //         'fabric_color_id'  => 'nullable|exists:fabric_colors,id',
+    //     ]);
 
-    $item->load('itemDetail.wood.woodType', 'itemDetail.fabric.fabricType');
-    $detail = $item->itemDetail->first();
+    //     $item->load('itemDetail.wood.woodType', 'itemDetail.fabric.fabricType');
+    //     $detail = $item->itemDetail->first();
 
-    $originalWood = $detail->wood;
-    $originalFabric = $detail->fabric;
+    //     $originalWood = $detail->wood;
+    //     $originalFabric = $detail->fabric;
 
-    $originalWoodType = $originalWood?->woodType;
-    $originalFabricType = $originalFabric?->fabricType;
+    //     $originalWoodType = $originalWood?->woodType;
+    //     $originalFabricType = $originalFabric?->fabricType;
 
-    $newWoodType = $request->filled('wood_type_id') ? WoodType::findOrFail($request->wood_type_id) : $originalWoodType;
-    $newFabricType = $request->filled('fabric_type_id') ? FabricType::findOrFail($request->fabric_type_id) : $originalFabricType;
+    //     $newWoodType = $request->filled('wood_type_id') ? WoodType::findOrFail($request->wood_type_id) : $originalWoodType;
+    //     $newFabricType = $request->filled('fabric_type_id') ? FabricType::findOrFail($request->fabric_type_id) : $originalFabricType;
 
-    $woodAreaCM2 = is_numeric($detail->wood_area_m2) ? (float) $detail->wood_area_m2 : 0;
+    //     $woodAreaCM2 = is_numeric($detail->wood_area_m2) ? (float) $detail->wood_area_m2 : 0;
 
-    [$fabricLength, $fabricWidth] = explode('*', $detail->fabric_dimension ?? '0*0');
-    $fabricLength = floatval($fabricLength);
-    $fabricWidth = floatval($fabricWidth);
-    $fabricAreaM2 = ($fabricLength * $fabricWidth) / 10000;
+    //     [$fabricLength, $fabricWidth] = explode('*', $detail->fabric_dimension ?? '0*0');
+    //     $fabricLength = floatval($fabricLength);
+    //     $fabricWidth = floatval($fabricWidth);
+    //     $fabricAreaM2 = ($fabricLength * $fabricWidth) / 10000;
 
-    $originalWoodPrice = (float) ($originalWoodType->price_per_meter ?? 0);
-    $newWoodPrice = (float) ($newWoodType->price_per_meter ?? 0);
-    $originalFabricPrice = (float) ($originalFabricType->price_per_meter ?? 0);
-    $newFabricPrice = (float) ($newFabricType->price_per_meter ?? 0);
+    //     $originalWoodPrice = (float) ($originalWoodType->price_per_meter ?? 0);
+    //     $newWoodPrice = (float) ($newWoodType->price_per_meter ?? 0);
+    //     $originalFabricPrice = (float) ($originalFabricType->price_per_meter ?? 0);
+    //     $newFabricPrice = (float) ($newFabricType->price_per_meter ?? 0);
 
-    $oldWoodCost = ($woodAreaCM2 / 10000) * $originalWoodPrice;
-    $newWoodCost = ($woodAreaCM2 / 10000) * $newWoodPrice;
+    //     $oldWoodCost = ($woodAreaCM2 / 10000) * $originalWoodPrice;
+    //     $newWoodCost = ($woodAreaCM2 / 10000) * $newWoodPrice;
 
-    $oldFabricCost = $fabricAreaM2 * $originalFabricPrice;
-    $newFabricCost = $fabricAreaM2 * $newFabricPrice;
+    //     $oldFabricCost = $fabricAreaM2 * $originalFabricPrice;
+    //     $newFabricCost = $fabricAreaM2 * $newFabricPrice;
 
-    $oldPrice = (float) $item->price;
-    $priceDifference = ($newWoodCost - $oldWoodCost) + ($newFabricCost - $oldFabricCost);
+    //     $oldPrice = (float) $item->price;
+    //     $priceDifference = ($newWoodCost - $oldWoodCost) + ($newFabricCost - $oldFabricCost);
 
-    // حساب التغيير في الأبعاد
-    $originalLength = (float) $detail->wood_length;
-    $originalWidth = (float) $detail->wood_width;
-    $originalHeight = (float) $detail->wood_height;
+    //     // حساب التغيير في الأبعاد
+    //     $originalLength = (float) $detail->wood_length;
+    //     $originalWidth = (float) $detail->wood_width;
+    //     $originalHeight = (float) $detail->wood_height;
 
-    $newLength = $request->input('new_length', $originalLength);
-    $newWidth = $request->input('new_width', $originalWidth);
-    $newHeight = $request->input('new_height', $originalHeight);
+    //     $newLength = $request->input('new_length', $originalLength);
+    //     $newWidth = $request->input('new_width', $originalWidth);
+    //     $newHeight = $request->input('new_height', $originalHeight);
 
-    $dimensionAdjustment = 0;
-    foreach ([
-        ['old' => $originalLength, 'new' => $newLength],
-        ['old' => $originalWidth, 'new' => $newWidth],
-        ['old' => $originalHeight, 'new' => $newHeight],
-    ] as $dim) {
-        $diffMeters = ($dim['new'] - $dim['old']) / 100;
-        $dimensionAdjustment += $diffMeters * 0.10;
-    }
+    //     $dimensionAdjustment = 0;
+    //     foreach (
+    //         [
+    //             ['old' => $originalLength, 'new' => $newLength],
+    //             ['old' => $originalWidth, 'new' => $newWidth],
+    //             ['old' => $originalHeight, 'new' => $newHeight],
+    //         ] as $dim
+    //     ) {
+    //         $diffMeters = ($dim['new'] - $dim['old']) / 100;
+    //         $dimensionAdjustment += $diffMeters * 0.10;
+    //     }
 
-    $finalPrice = $oldPrice + $priceDifference;
-    $finalPrice *= (1 + $dimensionAdjustment);
-    $finalPrice = max($finalPrice, $oldPrice * 0.9);
+    //     $finalPrice = $oldPrice + $priceDifference;
+    //     $finalPrice *= (1 + $dimensionAdjustment);
+    //     $finalPrice = max($finalPrice, $oldPrice * 0.9);
 
-    // تعديل أبعاد القماش بما يتناسب مع تعديل الخشب
-    $fabricLength += ($newLength - $originalLength);
-    $fabricWidth += ($newWidth - $originalWidth);
-    $newFabricDimension = round($fabricLength, 2) . '*' . round($fabricWidth, 2);
+    //     // تعديل أبعاد القماش بما يتناسب مع تعديل الخشب
+    //     $fabricLength += ($newLength - $originalLength);
+    //     $fabricWidth += ($newWidth - $originalWidth);
+    //     $newFabricDimension = round($fabricLength, 2) . '*' . round($fabricWidth, 2);
 
-    $finalTime = $item->time + 5;
+    //     $finalTime = $item->time + 5;
 
-    $customization = Customization::create([
-        'item_id'          => $item->id,
-        'wood_type_id'     => $request->input('wood_type_id'),
-        'fabric_type_id'   => $request->input('fabric_type_id'),
-        'wood_color_id'    => $request->input('wood_color_id'),
-        'fabric_color_id'  => $request->input('fabric_color_id'),
-        'new_length'       => $newLength,
-        'new_width'        => $newWidth,
-        'new_height'       => $newHeight,
-        'old_price'        => $oldPrice,
-        'final_price'      => $finalPrice,
-        'final_time'       => $finalTime,
-        'fabric_dimension' => $newFabricDimension,
-        'customer_id'      => $customer_id,
-    ]);
+    //     $customization = Customization::create([
+    //         'item_id'          => $item->id,
+    //         'wood_type_id'     => $request->input('wood_type_id'),
+    //         'fabric_type_id'   => $request->input('fabric_type_id'),
+    //         'wood_color_id'    => $request->input('wood_color_id'),
+    //         'fabric_color_id'  => $request->input('fabric_color_id'),
+    //         'new_length'       => $newLength,
+    //         'new_width'        => $newWidth,
+    //         'new_height'       => $newHeight,
+    //         'old_price'        => $oldPrice,
+    //         'final_price'      => $finalPrice,
+    //         'final_time'       => $finalTime,
+    //         'fabric_dimension' => $newFabricDimension,
+    //         'customer_id'      => $customer_id,
+    //     ]);
 
-    return response()->json([
-        'message' => 'تم تخصيص القطعة بنجاح.',
-        'customization' => $customization,
-    ]);
-}
+    //     return response()->json([
+    //         'message' => 'تم تخصيص القطعة بنجاح.',
+    //         'customization' => $customization,
+    //     ]);
+    // }
 
 
 
@@ -550,6 +552,272 @@ class ItemController extends Controller
             'data' => $items
         ]);
     }
+
+    // public function customizeItem(Request $request, Item $item)
+    // {
+    //     $request->validate([
+    //         'wood_id' => 'nullable|exists:woods,id',
+    //         'fabric_id' => 'nullable|exists:fabrics,id',
+    //         'wood_type_id' => 'nullable|exists:wood_types,id',
+    //         'wood_color_id' => 'nullable|exists:wood_colors,id',
+    //         'fabric_type_id' => 'nullable|exists:fabric_types,id',
+    //         'fabric_color_id' => 'nullable|exists:fabric_colors,id',
+    //         'new_length' => 'nullable|numeric',
+    //         'new_width' => 'nullable|numeric',
+    //         'new_height' => 'nullable|numeric',
+    //     ]);
+
+    //     $item->load('itemDetail.wood.woodType', 'itemDetail.fabric.fabricType');
+    //     $itemDetail = $item->itemDetail->first();
+
+    //     if (!$itemDetail) {
+    //         return response()->json(['message' => 'Item detail not found'], 404);
+    //     }
+
+    //     // القيم الأصلية
+    //     $originalWood = $itemDetail->wood;
+    //     $originalFabric = $itemDetail->fabric;
+    //     $originalWoodType = $originalWood->woodType ?? null;
+    //     $originalFabricType = $originalFabric->fabricType ?? null;
+    //     $originalWoodArea = $itemDetail->wood_area_m2 ?? 0;
+    //     $originalFabricLength = $itemDetail->fabric_length ?? 0;
+    //     $originalFabricWidth = $itemDetail->fabric_width ?? 0;
+    //     $originalPrice = $item->price;
+
+    //     $finalPrice = $originalPrice;
+
+    //     // تعديل حسب نوع الخشب
+    //     if ($request->wood_type_id && $originalWoodType && $request->wood_type_id != $originalWoodType->id) {
+    //         $newWoodType = \App\Models\WoodType::find($request->wood_type_id);
+    //         $oldWoodCost = $originalWoodArea * ($originalWoodType->price_per_meter ?? 0);
+    //         $newWoodCost = $originalWoodArea * ($newWoodType->price_per_meter ?? 0);
+    //         $finalPrice = $finalPrice - $oldWoodCost + $newWoodCost;
+    //     }
+
+    //     // تعديل حسب نوع القماش
+    //     if ($request->fabric_type_id && $originalFabricType && $request->fabric_type_id != $originalFabricType->id) {
+    //         $fabricArea = ($originalFabricLength / 100) * ($originalFabricWidth / 100); // m²
+    //         $oldFabricCost = $fabricArea * ($originalFabricType->price_per_meter ?? 0);
+    //         $newFabricType = \App\Models\FabricType::find($request->fabric_type_id);
+    //         $newFabricCost = $fabricArea * ($newFabricType->price_per_meter ?? 0);
+    //         $finalPrice = $finalPrice - $oldFabricCost + $newFabricCost;
+    //     }
+
+    //     // الأبعاد الجديدة
+    //     $originalLength = $itemDetail->wood_length ?? 0;
+    //     $originalWidth = $itemDetail->wood_width ?? 0;
+    //     $originalHeight = $itemDetail->wood_height ?? 0;
+
+    //     $newLength = $request->new_length ?? $originalLength;
+    //     $newWidth = $request->new_width ?? $originalWidth;
+    //     $newHeight = $request->new_height ?? $originalHeight;
+
+    //     $lengthDifference = $newLength - $originalLength;
+    //     $widthDifference = $newWidth - $originalWidth;
+    //     $heightDifference = $newHeight - $originalHeight;
+
+    //     // تعديل السعر حسب فرق الطول
+    //     if (abs($lengthDifference) >= 100) {
+    //         $change = 0.10 * $originalPrice;
+    //         if ($lengthDifference > 0) {
+    //             $finalPrice += $change;
+    //         } else {
+    //             $minimumAllowedPrice = $originalPrice * 0.9;
+    //             $finalPrice = max($finalPrice - $change, $minimumAllowedPrice);
+    //         }
+    //     }
+
+    //     // تعديل أبعاد القماش
+    //     $newFabricLength = $originalFabricLength;
+    //     $newFabricWidth = $originalFabricWidth;
+
+    //     if ($heightDifference > 0) {
+    //         $newFabricLength += $heightDifference;
+    //     }
+
+    //     if ($widthDifference > 0) {
+    //         $newFabricWidth += $widthDifference;
+    //     }
+
+    //     // وقت التخصيص
+    //     $finalTime = $item->time + 5;
+
+    //     // معرف الزبون
+    //     $customerId = auth()->user()->customer->id;
+
+    //     // تخزين التخصيص
+    //     Customization::create([
+    //         'item_id' => $item->id,
+    //         'wood_id' => $request->wood_id ?? $originalWood->id,
+    //         'wood_type_id' => $request->wood_type_id ?? $originalWoodType?->id,
+    //         'wood_color_id' => $request->wood_color_id ?? $originalWood->wood_color_id,
+    //         'fabric_id' => $request->fabric_id ?? $originalFabric->id,
+    //         'fabric_type_id' => $request->fabric_type_id ?? $originalFabricType?->id,
+    //         'fabric_color_id' => $request->fabric_color_id ?? $originalFabric->fabric_color_id,
+    //         'new_length' => $newLength,
+    //         'new_width' => $newWidth,
+    //         'new_height' => $newHeight,
+    //         'old_price' => $originalPrice,
+    //         'final_price' => $finalPrice,
+    //         'final_time' => $finalTime,
+    //         'wood_color' => $request->wood_color_id ?? $originalWood->wood_color_id,
+    //         'fabric_color' => $request->fabric_color_id ?? $originalFabric->fabric_color_id,
+    //         'fabric_length' => $newFabricLength,
+    //         'fabric_width' => $newFabricWidth,
+    //         'customer_id' => $customerId,
+    //     ]);
+
+    //     return response()->json([
+    //         'message' => 'Customization created successfully.',
+    //         'orginal_price'=>$item->price,
+    //         'final_price' => $finalPrice,
+    //         'final_time' => $finalTime,
+    //         'fabric_length' => $newFabricLength,
+    //         'fabric_width' => $newFabricWidth,
+    //     ]);
+    // }
+
+    public function customizeItem(Request $request, Item $item)
+    {
+        $request->validate([
+            'wood_id' => 'nullable|exists:woods,id',
+            'fabric_id' => 'nullable|exists:fabrics,id',
+            'wood_type_id' => 'nullable|exists:wood_types,id',
+            'wood_color_id' => 'nullable|exists:wood_colors,id',
+            'fabric_type_id' => 'nullable|exists:fabric_types,id',
+            'fabric_color_id' => 'nullable|exists:fabric_colors,id',
+            'new_length' => 'nullable|numeric',
+            'new_width' => 'nullable|numeric',
+            'new_height' => 'nullable|numeric',
+        ]);
+
+        $item->load('itemDetail.wood.woodType', 'itemDetail.fabric.fabricType');
+        $itemDetail = $item->itemDetail->first();
+
+        if (!$itemDetail) {
+            return response()->json(['message' => 'Item detail not found'], 404);
+        }
+
+        // القيم الأصلية
+        $originalWood = $itemDetail->wood;
+        $originalFabric = $itemDetail->fabric;
+        $originalWoodType = $originalWood->woodType ?? null;
+        $originalFabricType = $originalFabric->fabricType ?? null;
+        $originalWoodArea = $itemDetail->wood_area_m2 ?? 0;
+        $originalFabricLength = $itemDetail->fabric_length ?? 0;
+        $originalFabricWidth = $itemDetail->fabric_width ?? 0;
+        $originalPrice = $item->price;
+
+        $finalPrice = $originalPrice;
+
+        // تعديل حسب نوع الخشب
+        if ($request->wood_type_id && $originalWoodType && $request->wood_type_id != $originalWoodType->id) {
+            $newWoodType = \App\Models\WoodType::find($request->wood_type_id);
+            $oldWoodCost = $originalWoodArea * ($originalWoodType->price_per_meter ?? 0);
+            $newWoodCost = $originalWoodArea * ($newWoodType->price_per_meter ?? 0);
+            $finalPrice = $finalPrice - $oldWoodCost + $newWoodCost;
+        }
+
+        // تعديل حسب نوع القماش
+        if ($request->fabric_type_id && $originalFabricType && $request->fabric_type_id != $originalFabricType->id) {
+            $fabricArea = ($originalFabricLength / 100) * ($originalFabricWidth / 100); // m²
+            $oldFabricCost = $fabricArea * ($originalFabricType->price_per_meter ?? 0);
+            $newFabricType = \App\Models\FabricType::find($request->fabric_type_id);
+            $newFabricCost = $fabricArea * ($newFabricType->price_per_meter ?? 0);
+            $finalPrice = $finalPrice - $oldFabricCost + $newFabricCost;
+        }
+
+        // الأبعاد الأصلية
+        $originalLength = $itemDetail->wood_length ?? 0;
+        $originalWidth = $itemDetail->wood_width ?? 0;
+        $originalHeight = $itemDetail->wood_height ?? 0;
+
+        $newLength = $request->new_length ?? $originalLength;
+        $newWidth = $request->new_width ?? $originalWidth;
+        $newHeight = $request->new_height ?? $originalHeight;
+
+        $lengthDifference = $newLength - $originalLength;
+        $widthDifference = $newWidth - $originalWidth;
+        $heightDifference = $newHeight - $originalHeight;
+
+        // تعديل السعر حسب فرق الطول (نسبي حتى لو أقل من متر)
+        if ($lengthDifference != 0) {
+            $percentageChange = ($lengthDifference / 100) * 0.10;
+            $change = $percentageChange * $originalPrice;
+
+            if ($lengthDifference > 0) {
+                $finalPrice += $change;
+            } else {
+                $minimumAllowedPrice = $originalPrice * 0.9;
+                $finalPrice = max($finalPrice + $change, $minimumAllowedPrice);
+            }
+        }
+
+        // تعديل السعر حسب فرق العرض (نسبي فقط إذا زاد)
+        if ($widthDifference > 0) {
+            $percentageChange = ($widthDifference / 100) * 0.10;
+            $change = $percentageChange * $originalPrice;
+            $finalPrice += $change;
+        }
+
+        // تعديل السعر حسب فرق الارتفاع (نسبي فقط إذا زاد)
+        if ($heightDifference > 0) {
+            $percentageChange = ($heightDifference / 100) * 0.10;
+            $change = $percentageChange * $originalPrice;
+            $finalPrice += $change;
+        }
+
+        // تعديل أبعاد القماش
+        $newFabricLength = $originalFabricLength;
+        $newFabricWidth = $originalFabricWidth;
+
+        if ($heightDifference > 0) {
+            $newFabricLength += $heightDifference;
+        }
+
+        if ($widthDifference > 0) {
+            $newFabricWidth += $widthDifference;
+        }
+
+        // وقت التخصيص
+        $finalTime = $item->time + 5;
+
+        // معرف الزبون
+        $customerId = auth()->user()->customer->id;
+
+        // تخزين التخصيص
+        Customization::create([
+            'item_id' => $item->id,
+            'wood_id' => $request->wood_id ?? $originalWood->id,
+            'wood_type_id' => $request->wood_type_id ?? $originalWoodType?->id,
+            'wood_color_id' => $request->wood_color_id ?? $originalWood->wood_color_id,
+            'fabric_id' => $request->fabric_id ?? $originalFabric->id,
+            'fabric_type_id' => $request->fabric_type_id ?? $originalFabricType?->id,
+            'fabric_color_id' => $request->fabric_color_id ?? $originalFabric->fabric_color_id,
+            'new_length' => $newLength,
+            'new_width' => $newWidth,
+            'new_height' => $newHeight,
+            'old_price' => $originalPrice,
+            'final_price' => $finalPrice,
+            'final_time' => $finalTime,
+            'wood_color' => $request->wood_color_id ?? $originalWood->wood_color_id,
+            'fabric_color' => $request->fabric_color_id ?? $originalFabric->fabric_color_id,
+            'fabric_length' => $newFabricLength,
+            'fabric_width' => $newFabricWidth,
+            'customer_id' => $customerId,
+        ]);
+
+        return response()->json([
+            'message' => 'Customization created successfully.',
+            'orginal_price' => $originalPrice,
+            'final_price' => $finalPrice,
+            'final_time' => $finalTime,
+            'fabric_length' => $newFabricLength,
+            'fabric_width' => $newFabricWidth,
+        ]);
+    }
+
+
 
 
 

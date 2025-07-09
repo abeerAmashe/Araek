@@ -26,6 +26,8 @@ class Customization extends Model
         'final_time',
         'wood_color',
         'fabric_color',
+        'fabric_width',
+        'fabric_length',
         'customer_id',
     ];
 

@@ -31,6 +31,8 @@ class CreateCustomizationsTable extends Migration
             $table->unsignedBigInteger('fabric_type_id')->nullable();
             $table->unsignedBigInteger('fabric_color_id')->nullable();;
             $table->foreign('fabric_id')->references('id')->on('fabrics')->onDelete('set null');
+            $table->float('fabric_length')->nullable();
+            $table->float('fabric_width')->nullable();
         });
     }
 

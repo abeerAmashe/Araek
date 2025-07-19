@@ -1,0 +1,84 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+class Item extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'room_id',
+        'item_type_id',
+        'name',
+        'image_url',
+        'price',
+        'description',
+        'count',
+        'glb_url',
+        'thumbnail_url',
+        'count_reserved',
+        'time'
+
+    ];
+
+    protected $casts = [
+        'price' => 'float',
+    ];
+
+    public function room()
+    {
+        return $this->belongsTo(Room::class);
+    }
+
+    public function itemType()
+    {
+        return $this->belongsTo(ItemType::class);
+    }
+
+    public function itemDetail()
+    {
+        return $this->hasMany(ItemDetail::class);
+    }
+
+    public function likes()
+    {
+        return $this->hasMany(Like::class);
+    }
+
+    public function customer()
+    {
+        return $this->belongsToMany(Item::class, 'liked_items', 'item_id', 'customer_id');
+    }
+
+    public function customizations()
+    {
+        return $this->hasMany(Customization::class);
+    }
+
+    public function purchaseOrder()
+    {
+        return $this->belongsToMany(purchaseOrder::class, 'item_orders', 'item_id', 'purchase_order_id')->withPivot(
+            'count',
+            'deposite_price',
+            'deposite_time'
+        );
+    }
+
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class, 'item_id');
+    }
+
+    public function ratings()
+    {
+        return $this->hasMany(Rating::class);
+    }
+
+    public function discounts()
+    {
+        return $this->hasMany(Discount::class);
+    }
+}

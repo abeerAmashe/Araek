@@ -8,6 +8,7 @@ use App\Models\CustomizationItem;
 use App\Models\Fabric;
 use App\Models\FabricColor;
 use App\Models\FabricType;
+use App\Models\Favorite;
 use App\Models\Item;
 use App\Models\Rating;
 use App\Models\Room;
@@ -1104,6 +1105,11 @@ class RoomController extends Controller
                 'errors'  => $validator->errors(),
             ], 422);
         }
+        if (!$roomId || !is_numeric($roomId)) {
+            return response()->json([
+                'message' => 'Room Not Found',
+            ]);
+        }
 
         // 2. Load room and related item details
         $room = Room::with([
@@ -1530,11 +1536,22 @@ class RoomController extends Controller
                 );
             }
         }
+        $user = auth()->user();
+        $customerId = $user->customer->id;
+        $isFavorited = false;
+        if ($customerId) {
+            $isFavorited =Favorite::where('customer_id', $customerId)
+                ->where('room_id', $room->id)
+                ->exists();
+        }
+
 
         return response()->json([
             'room' => $room,
             'woods' => $allWoods->values(),
             'fabrics' => $allFabrics->values(),
+            'is_favorited' => $isFavorited,
+
         ]);
     }
 

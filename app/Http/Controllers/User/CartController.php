@@ -1752,7 +1752,7 @@ class CartController extends Controller
 
         if (!$placeCost) {
             return response()->json([
-                'message' => 'العنوان غير مدعوم حالياً. لا يوجد سعر توصيل لهذا العنوان.',
+                'message' => 'address not founnd',
                 'delivery_price' => null,
                 'supported' => false,
             ], 200); // ✅ رجّع 200 بدل 404

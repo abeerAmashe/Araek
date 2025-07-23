@@ -65,7 +65,10 @@ class RoomController extends Controller
     }
     public function getAvailableWoodTypes($roomId)
     {
-        $room = Room::with('roomDetail.wood')->find($roomId);
+        $room = Room::with(
+            'roomDetail.wood',
+
+        )->find($roomId);
         if (!$room || !$room->roomDetail || !$room->roomDetail->wood) {
             return response()->json(['message' => 'No wood found'], 404);
         }
@@ -1355,229 +1358,225 @@ class RoomController extends Controller
             ]
         ], 200);
     }
-    // public function getRoomDetails(Request $request, $room_id)
+
+    // public function getRoomDetails(Request $request, $id)
     // {
-    //     $customer = auth()->user()?->customer;
-
     //     $room = Room::with([
-    //         'category',
-    //         'items',
-    //         'roomDetail.woods.types',
-    //         'roomDetail.woods.colors',
-    //         'roomDetail.fabrics.types',
-    //         'roomDetail.fabrics.colors'
-    //     ])->find($room_id);
-
-    //     if (!$room) {
-    //         return response()->json(['message' => 'Room not found'], 200);
-    //     }
-
-    //     $isFavorite = false;
-    //     $isLiked = false;
-
-    //     if ($customer) {
-    //         $isFavorite = $customer->favorites()->where('room_id', $room->id)->exists();
-    //         $isLiked = $customer->likes()->where('room_id', $room->id)->exists();
-    //     }
+    //         'roomDetail.wood.WoodType',
+    //         'roomDetail.wood.WoodColor',
+    //         'roomDetail.fabric.fabricType',
+    //         'roomDetail.fabric.fabricColor',
+    //         'ratings.customer.user', // تحميل ratings مع العملاء والمستخدمين
+    //     ])->findOrFail($id);
 
     //     $allWoods = collect();
     //     $allFabrics = collect();
 
-    //     foreach ($room->roomDetail as $detail) {
-    //         $allWoods = $allWoods->merge(
-    //             $detail->woods->map(function ($wood) {
-    //                 return [
-    //                     'id' => $wood->id,
-    //                     'name' => $wood->name,
-    //                     'price_per_meter' => $wood->price_per_meter,
-    //                     'types' => $wood->types->map(fn($type) => [
-    //                         'id' => $type->id,
-    //                         'wood_id' => $type->wood_id,
-    //                         'fabric_id' => $type->fabric_id,
-    //                         'name' => $type->name ?? null,
-    //                     ]),
-    //                     'colors' => $wood->colors->map(fn($color) => [
-    //                         'id' => $color->id,
-    //                         'wood_id' => $color->wood_id,
-    //                         'fabric_id' => $color->fabric_id,
-    //                         'name' => $color->name,
-    //                     ]),
-    //                 ];
-    //             })
-    //         );
+    //     if ($room->roomDetail && is_iterable($room->roomDetail)) {
+    //         foreach ($room->roomDetail as $detail) {
+    //             $allWoods = $allWoods->merge(
+    //                 $detail->woods->map(function ($wood) {
+    //                     return [
+    //                         'id' => $wood->id,
+    //                         'name' => $wood->name,
+    //                         'price_per_meter' => $wood->price_per_meter,
+    //                         'types' => $wood->types->map(fn($type) => [
+    //                             'id' => $type->id,
+    //                             'wood_id' => $type->wood_id,
+    //                             'fabric_id' => $type->fabric_id,
+    //                             'name' => $type->name ?? null,
+    //                         ]),
+    //                         'colors' => $wood->colors->map(fn($color) => [
+    //                             'id' => $color->id,
+    //                             'wood_id' => $color->wood_id,
+    //                             'fabric_id' => $color->fabric_id,
+    //                             'name' => $color->name,
+    //                         ]),
+    //                     ];
+    //                 })
+    //             );
 
-    //         $allFabrics = $allFabrics->merge(
-    //             $detail->fabrics->map(function ($fabric) {
-    //                 return [
-    //                     'id' => $fabric->id,
-    //                     'name' => $fabric->name,
-    //                     'price_per_meter' => $fabric->price_per_meter,
-    //                     'types' => $fabric->types->map(fn($type) => [
-    //                         'id' => $type->id,
-    //                         'name' => $type->name ?? null,
-    //                         'wood_id' => $type->wood_id,
-    //                         'fabric_id' => $type->fabric_id,
-    //                     ]),
-    //                     'colors' => $fabric->colors ? $fabric->colors->map(fn($color) => [
-    //                         'id' => $color->id,
-    //                         'wood_id' => $color->wood_id,
-    //                         'fabric_id' => $color->fabric_id,
-    //                         'name' => $color->name,
-    //                     ]) : [],
-    //                 ];
-    //             })
-    //         );
+    //             $allFabrics = $allFabrics->merge(
+    //                 $detail->fabrics->map(function ($fabric) {
+    //                     return [
+    //                         'id' => $fabric->id,
+    //                         'name' => $fabric->name,
+    //                         'price_per_meter' => $fabric->price_per_meter,
+    //                         'types' => $fabric->types->map(fn($type) => [
+    //                             'id' => $type->id,
+    //                             'name' => $type->name ?? null,
+    //                             'wood_id' => $type->wood_id,
+    //                             'fabric_id' => $type->fabric_id,
+    //                         ]),
+    //                         'colors' => $fabric->colors ? $fabric->colors->map(fn($color) => [
+    //                             'id' => $color->id,
+    //                             'wood_id' => $color->wood_id,
+    //                             'fabric_id' => $color->fabric_id,
+    //                             'name' => $color->name,
+    //                         ]) : [],
+    //                     ];
+    //                 })
+    //             );
+    //         }
     //     }
 
-    //     $allWoods = $allWoods->unique('id')->values();
-    //     $allFabrics = $allFabrics->unique('id')->values();
+    //     $user = auth()->user();
+    //     $customer = $user ? $user->customer : null;
+    //     $customerId = $customer ? $customer->id : null;
 
-    //     $ratings = Rating::with('customer.user')
-    //         ->where('room_id', $room->id)
-    //         ->get();
+    //     $isFavorited = false;
+    //     if ($customerId) {
+    //         $isFavorited = Favorite::where('customer_id', $customerId)
+    //             ->where('room_id', $room->id)
+    //             ->exists();
+    //     }
 
-    //     $ratingData = $ratings->map(function ($rating) {
+    //     $isLiked = $customerId
+    //         ? \App\Models\Like::where('room_id', $room->id)->where('customer_id', $customerId)->exists()
+    //         : false;
+
+    //     $likeCounts = \App\Models\Like::where('item_id', $room->id)->count();
+
+    //     $averageRating = (float) $room->ratings()->avg('rate');
+
+    //     $ratings = $room->ratings->map(function ($rating) {
     //         return [
-    //             'customer_name' => $rating->customer?->user?->name,
-    //             'customer_image' => $rating->customer?->profile_image,
-    //             'rate' => (float) $rating->rate,
     //             'feedback' => $rating->feedback,
+    //             'rate' => (float) $rating->rate,
+    //             'customer' => [
+    //                 'id' => $rating->customer->id,
+    //                 'name' => $rating->customer->user->name,
+    //                 'image_url' => $rating->customer->user->image_url ?? null,
+    //             ],
     //         ];
     //     });
 
-    //     $averageRating = (float) $ratings->avg('rate');
-    //     $totalRate = $ratings->count();
-
     //     return response()->json([
-    //         'room' => [
-    //             'id' => $room->id,
-    //             'name' => $room->name,
-    //             'category_id' => $room->category_id,
-    //             'category_name' => $room->category?->name,
-    //             'description' => $room->description,
-    //             'image_url' => $room->image_url,
-    //             'count_reserved' => $room->count_reserved,
-    //             'time' => $room->time,
-    //             'price' => $room->price,
-    //             'count' => $room->count,
-    //             'is_favorite' => $isFavorite,
-    //             'is_liked' => $isLiked,
-    //             'likes_count' => $room->likes()->count(),
-    //             'average_rating' => (float) $averageRating,
-    //             'total_rate' => $totalRate,
-    //             'items' => $room->items->map(fn($item) => [
-    //                 'id' => $item->id,
-    //                 'name' => $item->name,
-    //                 'price' => $item->price,
-    //                 'image_url' => $item->image_url,
-    //             ]),
-    //         ],
-    //         'woods' => $allWoods,
-    //         'fabrics' => $allFabrics,
-    //         'ratings' => $ratingData,
+    //         'room' => $room,
+    //         'ratings' => $ratings,
+    //         'is_liked' => $isLiked,
+    //         'like_counts' => $likeCounts,
+    //         'is_favorited' => $isFavorited,
+    //         'averageRating' => $averageRating,
     //     ]);
     // }
     public function getRoomDetails(Request $request, $id)
 {
     $room = Room::with([
-        'roomDetail.wood.WoodType',
-        'roomDetail.wood.WoodColor',
-        'roomDetail.fabric.fabricType',
-        'roomDetail.fabric.fabricColor',
-        'ratings.customer.user', // تحميل ratings مع العملاء والمستخدمين
+        'category',
+        'roomDetail.wood',          // جلب wood من roomDetail
+        'roomDetail.fabric',        // جلب fabric من roomDetail
+        'ratings.customer.user',
+        'items',
+        'favorites',
+        'likes',
     ])->findOrFail($id);
 
+    // جمع Woods و Fabrics بشكل مناسب ومنسق
     $allWoods = collect();
     $allFabrics = collect();
 
-    if ($room->roomDetail && is_iterable($room->roomDetail)) {
-        foreach ($room->roomDetail as $detail) {
-            $allWoods = $allWoods->merge(
-                $detail->woods->map(function ($wood) {
-                    return [
-                        'id' => $wood->id,
-                        'name' => $wood->name,
-                        'price_per_meter' => $wood->price_per_meter,
-                        'types' => $wood->types->map(fn($type) => [
-                            'id' => $type->id,
-                            'wood_id' => $type->wood_id,
-                            'fabric_id' => $type->fabric_id,
-                            'name' => $type->name ?? null,
-                        ]),
-                        'colors' => $wood->colors->map(fn($color) => [
-                            'id' => $color->id,
-                            'wood_id' => $color->wood_id,
-                            'fabric_id' => $color->fabric_id,
-                            'name' => $color->name,
-                        ]),
-                    ];
-                })
-            );
+    // لأن roomDetail علاقة hasOne غالباً، إذن ليست iterable
+    if ($room->roomDetail) {
+        $wood = $room->roomDetail->wood;
+        if ($wood) {
+            // جمع أنواع الخشب (WoodType) ولونه (WoodColor) لخشب الغرفة الحالي
+            $allWoods->push([
+                'id' => $wood->id,
+                'name' => $wood->name,
+                'price_per_meter' => $wood->price_per_meter,
+                'types' => $wood->woodType ? [[
+                    'id' => $wood->woodType->id,
+                    'name' => $wood->woodType->name,
+                    'price_per_meter' => $wood->woodType->price_per_meter,
+                ]] : [],
+                'colors' => $wood->woodColor ? [[
+                    'id' => $wood->woodColor->id,
+                    'name' => $wood->woodColor->name,
+                ]] : [],
+            ]);
+        }
 
-            $allFabrics = $allFabrics->merge(
-                $detail->fabrics->map(function ($fabric) {
-                    return [
-                        'id' => $fabric->id,
-                        'name' => $fabric->name,
-                        'price_per_meter' => $fabric->price_per_meter,
-                        'types' => $fabric->types->map(fn($type) => [
-                            'id' => $type->id,
-                            'name' => $type->name ?? null,
-                            'wood_id' => $type->wood_id,
-                            'fabric_id' => $type->fabric_id,
-                        ]),
-                        'colors' => $fabric->colors ? $fabric->colors->map(fn($color) => [
-                            'id' => $color->id,
-                            'wood_id' => $color->wood_id,
-                            'fabric_id' => $color->fabric_id,
-                            'name' => $color->name,
-                        ]) : [],
-                    ];
-                })
-            );
+        $fabric = $room->roomDetail->fabric;
+        if ($fabric) {
+            $allFabrics->push([
+                'id' => $fabric->id,
+                'name' => $fabric->name,
+                'price_per_meter' => $fabric->price_per_meter,
+                'types' => $fabric->fabricType ? [[
+                    'id' => $fabric->fabricType->id,
+                    'name' => $fabric->fabricType->name,
+                    'price_per_meter' => $fabric->fabricType->price_per_meter,
+                ]] : [],
+                'colors' => $fabric->fabricColor ? [[
+                    'id' => $fabric->fabricColor->id,
+                    'name' => $fabric->fabricColor->name,
+                ]] : [],
+            ]);
         }
     }
 
+    // التحقق من المستخدم الحالي
     $user = auth()->user();
     $customer = $user ? $user->customer : null;
     $customerId = $customer ? $customer->id : null;
 
-    $isFavorited = false;
-    if ($customerId) {
-        $isFavorited = Favorite::where('customer_id', $customerId)
-            ->where('room_id', $room->id)
-            ->exists();
-    }
+    $isFavorited = $customerId
+        ? Favorite::where('customer_id', $customerId)->where('room_id', $room->id)->exists()
+        : false;
 
     $isLiked = $customerId
         ? \App\Models\Like::where('room_id', $room->id)->where('customer_id', $customerId)->exists()
         : false;
 
-    $likeCounts = \App\Models\Like::where('item_id', $room->id)->count();
+    $likeCounts = \App\Models\Like::where('room_id', $room->id)->count();
 
-    $averageRating = (float) $room->ratings()->avg('rate');
+    $averageRating = round((float) $room->ratings()->avg('rate'), 1);
+    $totalRate = $room->ratings()->count();
 
     $ratings = $room->ratings->map(function ($rating) {
         return [
-            'feedback' => $rating->feedback,
+            'customer_name' => $rating->customer->user->name ?? null,
+            'customer_image' => $rating->customer->user->image_url ?? null,
             'rate' => (float) $rating->rate,
-            'customer' => [
-                'id' => $rating->customer->id,
-                'name' => $rating->customer->user->name,
-                'image_url' => $rating->customer->user->image_url ?? null,
-            ],
+            'feedback' => $rating->feedback,
+        ];
+    });
+
+    $items = $room->items->map(function ($item) {
+        return [
+            'id' => $item->id,
+            'name' => $item->name,
+            'price' => $item->price,
+            'image_url' => $item->image_url,
         ];
     });
 
     return response()->json([
-        'room' => $room,
+        'room' => [
+            'id' => $room->id,
+            'name' => $room->name,
+            'category_id' => $room->category_id,
+            'category_name' => $room->category?->name,
+            'description' => $room->description,
+            'image_url' => $room->image_url,
+            'count_reserved' => $room->count_reserved,
+            'time' => $room->time,
+            'price' => $room->price,
+            'count' => $room->count,
+            'is_favorited' => $isFavorited,
+            'is_liked' => $isLiked,
+            'likes_count' => $likeCounts,
+            'average_rating' => $averageRating,
+            'total_rate' => $totalRate,
+            'items' => $items,
+        ],
+        'woods' => $allWoods->values(),
+        'fabrics' => $allFabrics->values(),
         'ratings' => $ratings,
-        'is_liked' => $isLiked,
-        'like_counts' => $likeCounts,
-        'is_favorited' => $isFavorited,
-        'averageRating'=>$averageRating,
     ]);
 }
+
 
 
     public function trendingRooms()

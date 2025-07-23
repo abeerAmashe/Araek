@@ -5,6 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 
@@ -25,6 +26,7 @@ class ProfileController extends Controller
             'phone_number' => $user->customer->phone_number,
         ]);
     }
+    
     public function updateProfile(Request $request)
     {
         $user = auth()->user();
@@ -82,4 +84,32 @@ class ProfileController extends Controller
             'profile_image' => $customer->profile_image,
         ]);
     }
+
+     public function deleteProfile(Request $request)
+    {
+        $user = auth()->user();
+
+        if (!$user || !$user->customer) {
+            return response()->json(['message' => 'Unauthorized.'], 401);
+        }
+
+        $customer = $user->customer;
+
+        $hasOrders = $customer->purchaseOrders()->exists();
+
+        if ($hasOrders) {
+            return response()->json(['message' => 'Cannot delete account. Active purchase orders found.'], 403);
+        }
+
+        if ($customer->profile_image && Storage::disk('public')->exists($customer->profile_image)) {
+            Storage::disk('public')->delete($customer->profile_image);
+        }
+
+        $customer->delete();
+
+        $customer->user->delete();
+
+        return response()->json(['message' => 'Your profile has been deleted successfully.'], 200);
+    }
+    
 }

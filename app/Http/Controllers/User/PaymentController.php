@@ -13,12 +13,6 @@ use Illuminate\Support\Facades\DB;
 class PaymentController extends Controller
 {
     
-
-
-
-    /**
-     * عرض سجل العمليات المالية لمستخدم معين
-     */
     public function index(Request $request)
     {
         $user = auth()->user();
@@ -31,7 +25,6 @@ class PaymentController extends Controller
             $query->where('wallet_id', $request->wallet_id);
         }
 
-        // استخدام get() بدلاً من paginate() لإرجاع كل العمليات بدون معلومات التصفّح
         $transactions = $query->get();
 
         $operations = [];

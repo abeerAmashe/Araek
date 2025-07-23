@@ -57,6 +57,7 @@ class FavoriteController extends Controller
             return response()->json(['message' => 'No item or room provided'], 200);
         }
     }
+    
     public function getFavoritesWithDetails()
     {
         $user = auth()->user();
@@ -99,6 +100,7 @@ class FavoriteController extends Controller
             'items' => $items,
         ], 200);
     }
+    
     public function toggleLike(Request $request)
     {
         $user = auth()->user();
@@ -135,6 +137,7 @@ class FavoriteController extends Controller
 
         return response()->json(['message' => 'liked'], 201);
     }
+    
     public function getCustomerLikes()
     {
         $user = auth()->user();
@@ -177,6 +180,7 @@ class FavoriteController extends Controller
             'rooms_likes' => $roomsLikes,
         ], 200);
     }
+    
     public function getCustomerFavorites()
     {
         $user = auth()->user();
@@ -207,4 +211,5 @@ class FavoriteController extends Controller
             'items' => $itemsFavorites,
         ], 200);
     }
+    
 }

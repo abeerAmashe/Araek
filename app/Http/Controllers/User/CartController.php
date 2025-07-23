@@ -25,178 +25,6 @@ use Illuminate\Support\Facades\Log;
 
 class CartController extends Controller
 {
-
-    // public function addToCart2(Request $request)
-    // {
-    //     $user = auth()->user();
-    //     $customerId = $user->customer->id;
-
-    //     $requiredFields = ['item_id', 'room_id', 'customization_id', 'room_customization_id'];
-    //     $isValid = false;
-    //     foreach ($requiredFields as $field) {
-    //         if ($request->has($field)) {
-    //             $isValid = true;
-    //             break;
-    //         }
-    //     }
-
-    //     if (!$isValid) {
-    //         return response()->json(['message' => 'Invalid request. Missing one of item_id, room_id, customization_id, or room_customization_id'], 200);
-    //     }
-
-    //     $itemId = $request->input('item_id');
-    //     $roomId = $request->input('room_id');
-    //     $customizationId = $request->input('customization_id');
-    //     $roomCustomizationId = $request->input('room_customization_id');
-    //     $count = (int) $request->input('count', 1);
-
-    //     if ($count <= 0) {
-    //         return response()->json(['message' => 'Count must be greater than 0'], 200);
-    //     }
-
-    //     $pricePerItem = 0.00;
-    //     $timePerItem = 0.00;
-    //     $reservedNow = 0;
-    //     $partialTime = 0;
-
-    //     $cartQuery = Cart::where('customer_id', $customerId);
-
-    //     if ($itemId) {
-    //         $item = Item::find($itemId);
-    //         if (!$item) return response()->json(['message' => 'Item not found'], 200);
-
-    //         $availableCount = $item->count - $item->count_reserved;
-    //         $reservedNow = min($count, $availableCount);
-    //         $missingCount = $count - $reservedNow;
-    //         $partialTime = $missingCount * $item->time;
-
-    //         $pricePerItem = (float) $item->price;
-    //         $timePerItem = (float) $item->time;
-
-    //         if ($reservedNow > 0) {
-    //             $item->count_reserved += $reservedNow;
-    //             $item->save();
-    //         }
-
-    //         $cartQuery->where('item_id', $itemId)
-    //             ->whereNull('room_id')
-    //             ->whereNull('customization_id')
-    //             ->whereNull('room_customization_id');
-
-    //         $cart = $cartQuery->first();
-
-    //         if ($cart) {
-    //             $cart->count += $count;
-    //             $cart->count_reserved += $reservedNow;
-    //             $cart->price = $pricePerItem * $cart->count;
-    //             $cart->time = ($cart->count - $cart->count_reserved) * $timePerItem;
-    //             $cart->price_per_item = $pricePerItem;
-    //             $cart->time_per_item = $timePerItem;
-    //             $cart->available_count_at_addition = $availableCount;
-    //             $cart->reserved_at = now();
-    //             $cart->save();
-    //         } else {
-    //             $cart = Cart::create([
-    //                 'customer_id' => $customerId,
-    //                 'item_id' => $itemId,
-    //                 'count' => $count,
-    //                 'count_reserved' => $reservedNow,
-    //                 'time_per_item' => $timePerItem,
-    //                 'price_per_item' => $pricePerItem,
-    //                 'time' => $partialTime,
-    //                 'price' => $pricePerItem * $count,
-    //                 'available_count_at_addition' => $availableCount,
-    //                 'reserved_at' => now(),
-    //             ]);
-    //         }
-    //     } elseif ($roomId) {
-    //         $room = Room::with('items')->find($roomId);
-    //         if (!$room) return response()->json(['message' => 'Room not found'], 200);
-
-    //         $availableCount = $room->count - $room->count_reserved;
-    //         $reservedNow = min($count, $availableCount);
-    //         $missingCount = $count - $reservedNow;
-    //         $partialTime = $missingCount * $room->time;
-
-    //         $pricePerItem = (float) $room->price;
-    //         $timePerItem = (float) $room->time;
-
-    //         // إنشاء أو تحديث الـ cart الخاص بالغرفة
-    //         $cart = Cart::firstOrCreate(
-    //             [
-    //                 'customer_id' => $customerId,
-    //                 'room_id' => $roomId,
-    //             ],
-    //             [
-    //                 'count' => 0,
-    //                 'count_reserved' => 0,
-    //                 'time_per_item' => $timePerItem,
-    //                 'price_per_item' => $pricePerItem,
-    //                 'time' => 0,
-    //                 'price' => 0,
-    //                 'available_count_at_addition' => $availableCount,
-    //                 'reserved_at' => now(),
-    //             ]
-    //         );
-
-    //         if ($reservedNow > 0) {
-    //             $room->count_reserved += $reservedNow;
-    //             $room->save();
-
-    //             foreach ($room->items as $roomItem) {
-    //                 $availableItemCount = $roomItem->count - $roomItem->count_reserved;
-    //                 $reserveCountForItem = min($reservedNow, $availableItemCount);
-
-    //                 if ($reserveCountForItem > 0) {
-    //                     $roomItem->count_reserved += $reserveCountForItem;
-    //                     $roomItem->save();
-
-    //                     $reservation = CartItemReservation::where('cart_id', $cart->id)
-    //                         ->where('item_id', $roomItem->id)
-    //                         ->first();
-
-    //                     if (!$reservation) {
-    //                         $reservation = CartItemReservation::create([
-    //                             'cart_id' => $cart->id,
-    //                             'item_id' => $roomItem->id,
-    //                             'count_reserved' => $reserveCountForItem,
-    //                         ]);
-    //                     } else {
-    //                         $reservation->count_reserved += $reserveCountForItem;
-    //                         $reservation->save();
-    //                     }
-    //                 }
-    //             }
-    //         }
-
-    //         // تحديث بيانات السلة بعد الإضافة
-    //         $cart->count += $count;
-    //         $cart->count_reserved += $reservedNow;
-    //         $cart->price = $pricePerItem * $cart->count;
-    //         $cart->time = ($cart->count - $cart->count_reserved) * $timePerItem;
-    //         $cart->price_per_item = $pricePerItem;
-    //         $cart->time_per_item = $timePerItem;
-    //         $cart->available_count_at_addition = $availableCount;
-    //         $cart->reserved_at = now();
-    //         $cart->save();
-    //     }
-
-    //     $cartItems = Cart::where('customer_id', $customerId)->get();
-    //     $totalCartPrice = $cartItems->sum('price');
-    //     $totalCartTime = $cartItems->sum('time');
-    //     $depositAmount = $totalCartPrice * 0.5;
-
-    //     return response()->json([
-    //         'message' => 'Added/Updated successfully in cart',
-    //         'cart' => $cart,
-    //         'total_time' => $totalCartTime,
-    //         'total_price' => $totalCartPrice,
-    //         'deposit' => $depositAmount,
-    //         'item_time' => $timePerItem,
-    //         'item_price' => $pricePerItem * $count,
-    //     ]);
-    // }
-
     public function addToCart2(Request $request)
     {
         $user = auth()->user();
@@ -458,115 +286,6 @@ class CartController extends Controller
         ]);
     }
 
-
-
-    // public function getCartDetails()
-    // {
-    //     $customerId = auth()->user()->customer->id;
-
-    //     $cartItems = \App\Models\Cart::with([
-    //         'item',
-    //         'room',
-
-
-    //     ])
-    //         ->where('customer_id', $customerId)
-    //         ->get();
-
-    //     $rooms = [];
-    //     $items = [];
-    //     $customizedItems = [];
-    //     $customizedRooms = [];
-
-    //     $totalPrice = 0;
-    //     $totalTime = 0;
-
-    //     foreach ($cartItems as $cart) {
-    //         $lineTotalPrice = (float) $cart->price;
-    //         $lineTotalTime = (float) $cart->time;
-
-    //         $totalPrice += $lineTotalPrice;
-    //         $totalTime += $lineTotalTime;
-
-    //         // الغرف العادية (بدون تخصيص غرفة)
-    //         if ($cart->room && $cart->roomCustomization_id) {
-    //             $rooms[] = [
-    //                 'id' => $cart->room->id,
-    //                 'name' => $cart->room->name,
-    //                 'image_url' => $cart->room->image_url,
-    //                 'price' => (float) $cart->price_per_item,
-    //                 'time' => (float) $cart->time_per_item,
-    //                 'count' => $cart->count,
-    //             ];
-    //         }
-
-    //         // العناصر العادية (بدون تخصيص)
-    //         if ($cart->item && !$cart->customization_id) {
-    //             $items[] = [
-    //                 'id' => $cart->item->id,
-    //                 'name' => $cart->item->name,
-    //                 'image_url' => $cart->item->image_url,
-    //                 'price' => (float) $cart->price_per_item,
-    //                 'time' => (float) $cart->time_per_item,
-    //                 'count' => $cart->count,
-    //             ];
-    //         }
-
-    //         // العناصر المخصصة
-    //         if ($cart->customization) {
-    //             $customizedItems[] = [
-    //                 'id' => $cart->customization->id,
-    //                 'name' => $cart->customization->item->name . ' (Customized)',
-    //                 'image_url' => $cart->customization->item->image_url,
-    //                 'price' => (float) $cart->price_per_item,
-    //                 'time' => (float) $cart->time_per_item,
-    //                 'count' => $cart->count,
-    //                 'customization' => [
-    //                     'wood_type' => optional($cart->customization->wood)->name,
-    //                     'fabric_type' => optional($cart->customization->fabric)->name,
-    //                     'wood_color' => $cart->customization->wood_color,
-    //                     'fabric_color' => $cart->customization->fabric_color,
-    //                     'dimensions' => [
-    //                         'length' => $cart->customization->new_length,
-    //                         'width' => $cart->customization->new_width,
-    //                         'height' => $cart->customization->new_height,
-    //                     ],
-    //                 ],
-    //             ];
-    //         }
-
-    //         // تخصيصات الغرف (كل التخصيصات المرتبطة بالـ Cart)
-    //         // if ($cart->room_customization_id) {
-    //         //     $roomCustomization=RoomCustomization::where('id',$cart->roomCustomization_id)->first();
-    //         //     return $roomCustomization->id;
-    //         //     $customizedRooms[] = [
-    //         //         'id' =>  $roomCustomization->id,
-    //         //         'name' =>  $roomCustomization->room->name ,
-    //         //         'image_url' =>   $roomCustomization->room->image_url? : null,
-    //         //         'price' => (float)   $roomCustomization->final_price,   // من الـ roomCustomization نفسها
-    //         //         'time' => (float)   $roomCustomization->final_time,    // من الـ roomCustomization نفسها
-    //         //         'count' => $cart->count,
-    //         //         'customization' => [
-    //         //             'wood_type' => optional(  $roomCustomization->woodType)->name,
-    //         //             'fabric_type' => optional( $roomCustomization->fabricType)->name,
-    //         //             'wood_color' => optional( $roomCustomization->woodColor)->name,
-    //         //             'fabric_color' => optional( $roomCustomization->fabricColor)->name,
-    //         //         ],
-    //         //     ];
-    //         // }
-    //     }
-
-    //     return response()->json([
-    //         'rooms' => $rooms,
-    //         'items' => $items,
-    //         'customized_items' => $customizedItems,
-    //         'customized_rooms' => $customizedRooms,
-    //         'total_price' => round($totalPrice, 2),
-    //         'total_time' => round($totalTime, 2),
-    //     ], 200);
-    // }
-
-
     public function getCartDetails()
     {
         $customerId = auth()->user()->customer->id;
@@ -597,7 +316,6 @@ class CartController extends Controller
             $totalPrice += $lineTotalPrice;
             $totalTime += $lineTotalTime;
 
-            // ✅ الغرف العادية (التي لا تحتوي على تخصيص)
             if ($cart->room && !$cart->room_customization_id) {
                 $rooms[] = [
                     'id' => $cart->room->id,
@@ -609,7 +327,6 @@ class CartController extends Controller
                 ];
             }
 
-            // ✅ العناصر العادية (التي لا تحتوي على تخصيص)
             if ($cart->item && !$cart->customization_id) {
                 $items[] = [
                     'id' => $cart->item->id,
@@ -621,7 +338,6 @@ class CartController extends Controller
                 ];
             }
 
-            // ✅ العناصر المخصصة
             if ($cart->customization) {
                 $customizedItems[] = [
                     'id' => $cart->customization->id,
@@ -644,7 +360,6 @@ class CartController extends Controller
                 ];
             }
 
-            // ✅ تخصيصات الغرف (جلب يدوي باستخدام room_customization_id فقط)
             if ($cart->room_customization_id) {
                 $roomCustomization = RoomCustomization::with([
                     'room',
@@ -682,316 +397,6 @@ class CartController extends Controller
             'total_time' => round($totalTime, 2),
         ], 200);
     }
-
-
-
-
-
-
-
-    // public function removePartialFromCart(Request $request)
-    // {
-    //     $request->validate([
-    //         'item_id' => 'nullable|integer|exists:items,id',
-    //         'room_id' => 'nullable|integer|exists:rooms,id',
-    //         'customization_id' => 'nullable|integer|exists:customizations,id',
-    //         'room_customization_id' => 'nullable|integer|exists:room_customizations,id',
-    //         'count' => 'required|integer|min:1',
-    //     ]);
-
-    //     $user = auth()->user();
-
-    //     if (!$user || !$user->customer) {
-    //         return response()->json(['message' => 'login is required'], 200);
-    //     }
-
-    //     $cartQuery = Cart::where('customer_id', $user->customer->id);
-
-    //     if ($request->filled('item_id')) {
-    //         $cartQuery->where('item_id', $request->item_id)
-    //             ->whereNull('room_id')
-    //             ->whereNull('customization_id')
-    //             ->whereNull('room_customization_id');
-    //     } elseif ($request->filled('room_id')) {
-    //         $cartQuery->where('room_id', $request->room_id)
-    //             ->whereNull('item_id')
-    //             ->whereNull('customization_id')
-    //             ->whereNull('room_customization_id');
-    //     } elseif ($request->filled('customization_id')) {
-    //         $cartQuery->where('customization_id', $request->customization_id)
-    //             ->whereNull('item_id')
-    //             ->whereNull('room_id')
-    //             ->whereNull('room_customization_id');
-    //     } elseif ($request->filled('room_customization_id')) {
-    //         $cartQuery->where('room_customization_id', $request->room_customization_id)
-    //             ->whereNull('item_id')
-    //             ->whereNull('room_id')
-    //             ->whereNull('customization_id');
-    //     } else {
-    //         return response()->json(['message' => 'You must provide one of item_id, room_id, customization_id, or room_customization_id'], 200);
-    //     }
-
-    //     $cartItem = $cartQuery->first();
-
-    //     if (!$cartItem) {
-    //         return response()->json(['message' => 'Item not found in cart'], 200);
-    //     }
-
-    //     if ($cartItem->count < $request->count) {
-    //         return response()->json(['message' => 'Count you sent is bigger than count in cart'], 200);
-    //     }
-
-    //     $removalCount = $request->count;
-    //     $newCartCount = $cartItem->count - $removalCount;
-
-    //     if ($cartItem->item_id) {
-    //         $item = Item::find($cartItem->item_id);
-
-    //         if ($item) {
-    //             if ($newCartCount < $cartItem->count_reserved) {
-    //                 $diff = $cartItem->count_reserved - $newCartCount;
-    //                 $cartItem->count_reserved = $newCartCount;
-    //                 $item->count_reserved = max(0, $item->count_reserved - $diff);
-    //                 $item->save();
-    //             }
-
-    //             if ($newCartCount > 0) {
-    //                 $unreservedCount = max(0, $newCartCount - $cartItem->count_reserved);
-    //                 $cartItem->count = $newCartCount;
-    //                 $cartItem->price = $cartItem->price_per_item * $newCartCount;
-    //                 $cartItem->time = $unreservedCount * $cartItem->time_per_item;
-    //                 $cartItem->save();
-    //             } else {
-    //                 $item->count_reserved = max(0, $item->count_reserved - $cartItem->count_reserved);
-    //                 $item->save();
-    //                 $cartItem->delete();
-    //             }
-    //         }
-    //     } elseif ($cartItem->room_id) {
-    //         $room = Room::with('items')->find($cartItem->room_id);
-
-    //         if ($room) {
-    //             if ($newCartCount < $cartItem->count_reserved) {
-    //                 $diff = $cartItem->count_reserved - $newCartCount;
-    //                 $cartItem->count_reserved = $newCartCount;
-    //                 $room->count_reserved = max(0, $room->count_reserved - $diff);
-    //                 $room->save();
-
-    //                 // ✅ تحرير الحجز بدقة من العناصر التابعة حسب CartItemReservation
-    //                 $reservations = CartItemReservation::where('cart_id', $cartItem->id)->get();
-    //                 $remainingToRemove = $diff;
-
-    //                 foreach ($reservations as $reservation) {
-    //                     if ($remainingToRemove <= 0) break;
-
-    //                     $item = Item::find($reservation->item_id);
-    //                     if (!$item) continue;
-
-    //                     $removeNow = min($reservation->count_reserved, $remainingToRemove);
-
-    //                     $item->count_reserved = max(0, $item->count_reserved - $removeNow);
-    //                     $item->save();
-
-    //                     $reservation->count_reserved -= $removeNow;
-    //                     if ($reservation->count_reserved <= 0) {
-    //                         $reservation->delete();
-    //                     } else {
-    //                         $reservation->save();
-    //                     }
-
-    //                     $remainingToRemove -= $removeNow;
-    //                 }
-    //             }
-
-    //             if ($newCartCount > 0) {
-    //                 $unreservedCount = max(0, $newCartCount - $cartItem->count_reserved);
-    //                 $cartItem->count = $newCartCount;
-    //                 $cartItem->price = $cartItem->price_per_item * $newCartCount;
-    //                 $cartItem->time = $unreservedCount * $cartItem->time_per_item;
-    //                 $cartItem->save();
-    //             } else {
-    //                 $room->count_reserved = max(0, $room->count_reserved - $cartItem->count_reserved);
-    //                 $room->save();
-
-    //                 // ✅ إزالة كل الحجوزات من العناصر التابعة
-    //                 $reservations = CartItemReservation::where('cart_id', $cartItem->id)->get();
-
-    //                 foreach ($reservations as $reservation) {
-    //                     $item = Item::find($reservation->item_id);
-    //                     if (!$item) continue;
-
-    //                     $item->count_reserved = max(0, $item->count_reserved - $reservation->count_reserved);
-    //                     $item->save();
-
-    //                     $reservation->delete();
-    //                 }
-
-    //                 $cartItem->delete();
-    //             }
-    //         }
-    //     }
-
-    //     $cartItems = Cart::where('customer_id', $user->customer->id)->get();
-    //     $totalPrice = $cartItems->sum('price');
-    //     $totalTime = $cartItems->max('time');
-
-    //     return response()->json([
-    //         'message' => 'Item removed or updated in cart',
-    //         'current_cart' => $cartItems,
-    //         'total_price' => $totalPrice,
-    //         'total_time' => $totalTime,
-    //     ], 200);
-    // }
-
-    //work:
-    // public function removePartialFromCart(Request $request)
-    // {
-    //     $request->validate([
-    //         'item_id' => 'nullable|integer|exists:items,id',
-    //         'room_id' => 'nullable|integer|exists:rooms,id',
-    //         'customization_id' => 'nullable|integer|exists:customizations,id',
-    //         'room_customization_id' => 'nullable|integer|exists:room_customizations,id',
-    //         'count' => 'required|integer|min:1',
-    //     ]);
-
-    //     $user = auth()->user();
-
-    //     if (!$user || !$user->customer) {
-    //         return response()->json(['message' => 'login is required'], 200);
-    //     }
-
-    //     $cartQuery = Cart::where('customer_id', $user->customer->id);
-
-    //     if ($request->filled('item_id')) {
-    //         $cartQuery->where('item_id', $request->item_id)
-    //             ->whereNull('room_id')
-    //             ->whereNull('customization_id')
-    //             ->whereNull('room_customization_id');
-    //         $cartQuery->where('room_id', $request->room_id)
-    //             ->whereNull('item_id')
-    //             ->whereNull('customization_id')
-    //             ->whereNull('room_customization_id');
-    //     } elseif ($request->filled('customization_id')) {
-    //         $cartQuery->where('customization_id', $request->customization_id)
-    //             ->whereNull('item_id')
-    //             ->whereNull('room_id')
-    //             ->whereNull('room_customization_id');
-    //     } elseif ($request->filled('room_customization_id')) {
-    //         $cartQuery->where('room_customization_id', $request->room_customization_id)
-    //             ->whereNull('item_id')
-    //             ->whereNull('room_id')
-    //             ->whereNull('customization_id');
-    //     } else {
-    //         return response()->json(['message' => 'You must provide one of item_id, room_id, customization_id, or room_customization_id'], 200);
-    //     }
-
-    //     $cart = $cartQuery->first();
-
-    //     if (!$cart) {
-    //         return response()->json(['message' => 'Item not found in cart'], 200);
-    //     }
-
-    //     if ($cart->count < $request->count) {
-    //         return response()->json(['message' => 'Count you sent is bigger than count in cart'], 200);
-    //     }
-
-    //     $cart->count -= $request->count;
-    //     if ($cart->count <= 0) {
-    //         $cart->delete();
-    //     } else {
-    //         $cart->save();
-
-    //         if ($cart->item_id) {
-    //             $item = Item::find($cart->item_id);
-    //             if ($item) {
-    //                 $item->count_reserved = max(0, $item->count_reserved - $cart->count_reserved);
-    //                 $item->save();
-
-    //                 $availableCount = max(0, $item->count - $item->count_reserved);
-    //                 $newReservedCount = min($cart->count, $availableCount);
-    //                 $missingCount = $cart->count - $newReservedCount;
-    //                 $timeForMissing = $missingCount * $item->time;
-
-    //                 $cart->count_reserved = $newReservedCount;
-    //                 $cart->time = $timeForMissing;
-    //                 $cart->reserved_at = Carbon::now();
-    //                 $cart->save();
-
-    //                 $item->count_reserved += $newReservedCount;
-    //                 $item->count_reserved = min($item->count_reserved, $item->count);
-    //                 $item->save();
-    //             }
-    //         } elseif ($cart->room_id) {
-    //             $room = Room::with('items')->find($cart->room_id);
-    //             if ($room) {
-    //                 $room->count_reserved = max(0, $room->count_reserved - $cart->count_reserved);
-    //                 $room->save();
-
-    //                 foreach ($room->items as $roomItem) {
-    //                     $roomItem->count_reserved = max(0, $roomItem->count_reserved - $cart->count_reserved);
-    //                     $roomItem->save();
-    //                 }
-
-    //                 $availableRooms = max(0, $room->count - $room->count_reserved);
-    //                 $maxReservable = min($cart->count, $availableRooms);
-    //                 $missingTime = 0;
-
-    //                 foreach ($room->items as $roomItem) {
-    //                     $availableItem = max(0, $roomItem->count - $roomItem->count_reserved);
-    //                     if ($availableItem < $maxReservable) {
-    //                         $reduction = $maxReservable - $availableItem;
-    //                         $maxReservable = $availableItem;
-    //                         $missingItemCount = $cart->count - $maxReservable;
-    //                         $missingTime += $missingItemCount * $roomItem->time;
-    //                     }
-    //                 }
-
-    //                 $missingRoomCount = $cart->count - $maxReservable;
-    //                 $missingTime += $missingRoomCount * $room->time;
-
-    //                 $cart->count_reserved = $maxReservable;
-    //                 $cart->time = $missingTime;
-    //                 $cart->reserved_at = Carbon::now();
-    //                 $cart->save();
-
-    //                 $room->count_reserved += $maxReservable;
-    //                 $room->count_reserved = min($room->count_reserved, $room->count);
-    //                 $room->save();
-
-    //                 foreach ($room->items as $roomItem) {
-    //                     $roomItem->count_reserved += $maxReservable;
-    //                     $roomItem->count_reserved = min($roomItem->count_reserved, $roomItem->count);
-    //                     $roomItem->save();
-    //                 }
-
-    //                 // 🆕 تحديث cart_item_reservations
-    //                 $deletedCount = $request->count;
-    //                 $cartItemReservations = CartItemReservation::where('cart_id', $cart->id)->get();
-
-    //                 foreach ($cartItemReservations as $reservation) {
-    //                     if ($deletedCount <= 0) break;
-
-    //                     $toReduce = min($reservation->count_reserved, $deletedCount);
-    //                     $reservation->count_reserved -= $toReduce;
-    //                     $reservation->save();
-
-    //                     $deletedCount -= $toReduce;
-    //                 }
-    //             }
-    //         }
-    //     }
-
-    //     $cartItems = Cart::where('customer_id', $user->customer->id)->get();
-    //     $totalPrice = $cartItems->sum('price');
-    //     $totalTime = $cartItems->max('time');
-
-    //     return response()->json([
-    //         'message' => 'Item removed or updated in cart',
-    //         'current_cart' => $cartItems,
-    //         'total_price' => $totalPrice,
-    //         'total_time' => $totalTime,
-    //     ], 200);
-    // }
 
     public function removePartialFromCart(Request $request)
     {
@@ -1048,7 +453,6 @@ class CartController extends Controller
         $countToRemove = $request->count;
         $newCount = $cart->count - $countToRemove;
 
-        // حساب النقص بالسعر والوقت حسب النوع
         $priceToRemove = 0;
         $timeToRemove = 0;
 
@@ -1065,7 +469,6 @@ class CartController extends Controller
             $timeToRemove = $countToRemove * ($cart->time_per_item ?? 0);
         }
 
-        // تحديث عدد، سعر و وقت العنصر
         $cart->count = $newCount;
         $cart->price = max(0, $cart->price - $priceToRemove);
         $cart->time = max(0, $cart->time - $timeToRemove);
@@ -1076,7 +479,6 @@ class CartController extends Controller
             $cart->save();
         }
 
-        // تحديث السعر والوقت الكلي للسلة
         $cartItems = Cart::where('customer_id', $user->customer->id)->get();
         $totalPrice = $cartItems->sum('price');
         $totalTime = $cartItems->max('time');
@@ -1088,43 +490,6 @@ class CartController extends Controller
             'total_time' => $totalTime,
         ], 200);
     }
-
-
-
-    // public function deleteCart()
-    // {
-    //     $user = auth()->user();
-    //     $customerId = $user->customer->id;
-
-    //     $cartItems = Cart::where('customer_id', $customerId)->get();
-
-    //     foreach ($cartItems as $cartItem) {
-    //         if ($cartItem->item_id) {
-    //             $item = Item::find($cartItem->item_id);
-    //             if ($item) {
-    //                 $item->count_reserved = max(0, $item->count_reserved - $cartItem->count);
-    //                 $item->save();
-    //             }
-    //         } elseif ($cartItem->room_id) {
-    //             $room = Room::with('items')->find($cartItem->room_id);
-    //             if ($room) {
-    //                 // 🔁 تحرير الحجز من الغرفة نفسها
-    //                 $room->count_reserved = max(0, $room->count_reserved - $cartItem->count);
-    //                 $room->save();
-
-    //                 // 🔁 تحرير الحجز من العناصر التابعة للغرفة
-    //                 foreach ($room->items as $roomItem) {
-    //                     $roomItem->count_reserved = max(0, $roomItem->count_reserved - $cartItem->count);
-    //                     $roomItem->save();
-    //                 }
-    //             }
-    //         }
-    //     }
-
-    //     Cart::where('customer_id', $customerId)->delete();
-
-    //     return response()->json(['message' => 'Cart and reservations cleared']);
-    // }
 
     public function deleteCart()
     {
@@ -1143,11 +508,9 @@ class CartController extends Controller
             } elseif ($cartItem->room_id) {
                 $room = Room::with('items')->find($cartItem->room_id);
                 if ($room) {
-                    // 1️⃣ تحرير الحجز من الغرفة نفسها
                     $room->count_reserved = max(0, $room->count_reserved - $cartItem->count_reserved);
                     $room->save();
 
-                    // 2️⃣ تحرير الحجز من العناصر التابعة بناءً على CartItemReservation
                     $reservations = CartItemReservation::where('cart_id', $cartItem->id)->get();
 
                     foreach ($reservations as $reservation) {
@@ -1157,200 +520,16 @@ class CartController extends Controller
                             $item->save();
                         }
 
-                        // حذف السطر من جدول الربط بعد التعديل
                         $reservation->delete();
                     }
                 }
             }
         }
 
-        // 3️⃣ حذف السلة كاملة بعد تحديث الجداول المرتبطة
         Cart::where('customer_id', $customerId)->delete();
 
         return response()->json(['message' => 'Cart and reservations cleared']);
     }
-
-
-    // public function confirmCart(Request $request)
-    // {
-    //     $user = auth()->user();
-    //     $customerId = $user->customer->id;
-    //     $cartItems = Cart::where('customer_id', $customerId)->get();
-
-    //     if ($cartItems->isEmpty()) {
-    //         return response()->json(['message' => 'Your cart is empty'], 200);
-    //     }
-
-    //     $wantDelivery = $request->input('want_delivery');
-    //     if (!in_array($wantDelivery, ['yes', 'no'])) {
-    //         return response()->json(['message' => 'The field want_delivery is required and must be yes or no']);
-    //     }
-
-    //     if ($wantDelivery === 'yes') {
-    //         if (!$request->has(['latitude', 'longitude'])) {
-    //             return response()->json(['message' => 'Latitude and longitude are required when delivery is wanted.']);
-    //         }
-    //         if (!$request->has('address') || empty($request->input('address'))) {
-    //             return response()->json(['message' => 'Address is required when delivery is wanted.']);
-    //         }
-    //     }
-
-    //     $totalPrice = 0;
-    //     $totalTime = 0;
-
-    //     foreach ($cartItems as $cartItem) {
-    //         $totalPrice += $cartItem->price;
-    //         $totalTime += $cartItem->time;
-    //     }
-
-    //     $rabbon = $totalPrice * 0.5;
-    //     $priceAfterRabbon = $totalPrice - $rabbon;
-
-    //     $wallet = $user->wallets()->where('is_active', 1)->where('wallet_type', 'investment')->first();
-
-    //     if (!$wallet) {
-    //         return response()->json(['message' => 'No active wallet found'], 400);
-    //     }
-
-    //     if ($wallet->balance < $rabbon) {
-    //         return response()->json(['message' => 'Insufficient balance to pay the deposit (rabbon)'], 200);
-    //     }
-
-    //     $wallet->balance -= $rabbon;
-    //     $wallet->save();
-
-    //     $manager = GallaryManager::with('user.wallets')->first();
-    //     if (!$manager || !$manager->user || !$manager->user->wallets->first()) {
-    //         return response()->json(['message' => 'Manager wallet not found'], 500);
-    //     }
-
-    //     $managerWallet = $manager->user->wallets->first();
-    //     $managerWallet->balance += $rabbon;
-    //     $managerWallet->save();
-
-    //     $deliveryPrice = 0;
-    //     $nearestBranch = null;
-
-    //     if ($wantDelivery === 'yes') {
-    //         $deliveryRequest = new \Illuminate\Http\Request([
-    //             'address'   => $request->input('address'),
-    //             'latitude'  => $request->input('latitude'),
-    //             'longitude' => $request->input('longitude'),
-    //         ]);
-
-    //         $deliveryResponse = $this->getDeliveryPrice($deliveryRequest);
-    //         $responseData = $deliveryResponse->getData(true);
-
-    //         if ($deliveryResponse->getStatusCode() === 200) {
-    //             $deliveryPrice = $responseData['delivery_price'];
-    //         } else {
-    //             return response()->json(['message' => $responseData['message']]);
-    //         }
-    //     } else {
-    //         $branchRequest = new \Illuminate\Http\Request([
-    //             'latitude'  => $request->input('latitude'),
-    //             'longitude' => $request->input('longitude'),
-    //         ]);
-
-    //         $branchResponse = $this->getNearestBranch($branchRequest);
-    //         $responseData = $branchResponse->getData(true);
-
-    //         if ($branchResponse->getStatusCode() === 200) {
-    //             $nearestBranch = $responseData['branch'];
-    //         } else {
-    //             return response()->json(['message' => $responseData['message']]);
-    //         }
-    //     }
-
-    //     $priceAfterRabbonWithDelivery = $priceAfterRabbon + $deliveryPrice;
-    //     $remainingAmountWithDelivery = $wantDelivery === 'yes' ? $priceAfterRabbonWithDelivery : null;
-
-    //     $purchaseOrder = PurchaseOrder::create([
-    //         'customer_id'                        => $customerId,
-    //         'status'                             => 'in_progress',
-    //         'delivery_status'                    => 'pending',
-    //         'want_delivery'                      => $wantDelivery,
-    //         'is_paid'                            => 'pending',
-    //         'total_price'                        => $totalPrice,
-    //         'recive_date'                        => $request->input('recive_date', now()),
-    //         'latitude'                           => $request->input('latitude'),
-    //         'longitude'                          => $request->input('longitude'),
-    //         'address'                            => $request->input('address'),
-    //         'delivery_price'                     => $deliveryPrice,
-    //         'rabbon'                             => $rabbon,
-    //         'price_after_rabbon'                 => $priceAfterRabbon,
-    //         'price_after_rabbon_with_delivery'   => $wantDelivery === 'yes' ? $priceAfterRabbonWithDelivery : null,
-    //         'remaining_amount_with_delivery'     => $remainingAmountWithDelivery,
-    //         'branch_id'                          => $wantDelivery === 'no' && $nearestBranch ? $nearestBranch['id'] : null,
-    //     ]);
-
-    //     foreach ($cartItems as $cartItem) {
-    //         $countRequested = $cartItem->count;
-
-    //         if ($cartItem->item_id) {
-    //             $item = Item::find($cartItem->item_id);
-    //             if ($item) {
-    //                 // خصم العدد المحجوز من العنصر
-    //                 $item->count -= $cartItem->count_reserved;
-    //                 $item->count_reserved -= $cartItem->count_reserved;
-    //                 $item->count = max(0, $item->count);
-    //                 $item->count_reserved = max(0, $item->count_reserved);
-    //                 $item->save();
-
-    //                 ItemOrder::create([
-    //                     'item_id'           => $item->id,
-    //                     'purchase_order_id' => $purchaseOrder->id,
-    //                     'count'             => $cartItem->count,
-    //                     'price'             => $cartItem->price,
-    //                     'time'              => $cartItem->time,
-    //                     'count_reserved'    => $cartItem->count_reserved,
-    //                 ]);
-    //             }
-    //         }
-
-    //         if ($cartItem->room_id) {
-    //             $room = Room::find($cartItem->room_id);
-    //             if ($room) {
-    //                 // خصم العدد المحجوز من الغرفة نفسها
-    //                 $room->count -= $cartItem->count_reserved;
-    //                 $room->count_reserved -= $cartItem->count_reserved;
-    //                 $room->count = max(0, $room->count);
-    //                 $room->count_reserved = max(0, $room->count_reserved);
-    //                 $room->save();
-    //             }
-
-    //             $roomOrder = $purchaseOrder->roomOrders()->create([
-    //                 'room_id'        => $cartItem->room_id,
-    //                 'count'          => $cartItem->count,
-    //                 'deposite_price' => $cartItem->price,
-    //                 'deposite_time'  => $cartItem->time,
-    //                 'count_reserved' => $cartItem->count_reserved,
-    //             ]);
-    //         }
-
-    //         $cartItem->delete();
-    //     }
-
-    //     $branch = null;
-    //     if ($purchaseOrder->branch_id) {
-    //         $branch = Branch::find($purchaseOrder->branch_id);
-    //     }
-
-    //     return response()->json([
-    //         'message' => 'Your order has been confirmed successfully!',
-    //         'order'   => $purchaseOrder->load('roomOrders', 'item', 'customer'),
-    //         'price_details' => [
-    //             'total_price'                       => $totalPrice,
-    //             'rabbon'                            => $rabbon,
-    //             'price_after_rabbon'                => $priceAfterRabbon,
-    //             'delivery_price'                    => $deliveryPrice,
-    //             'price_after_rabbon_with_delivery' => $priceAfterRabbonWithDelivery,
-    //             'remaining_amount'                  => $priceAfterRabbon,
-    //             'remaining_amount_with_delivery'   => $remainingAmountWithDelivery,
-    //         ],
-    //         'nearest_branch' => $nearestBranch,
-    //     ]);
-    // }
 
     public function confirmCart(Request $request)
     {
@@ -1554,7 +733,6 @@ class CartController extends Controller
             if ($cartItem->customization_id) {
                 $customization = \App\Models\Customization::find($cartItem->customization_id);
                 if ($customization) {
-                    // إرسال الطلب للورشة
                     \App\Models\WorkshopManagerRequest::create([
                         'purchase_order_id'  => $purchaseOrder->id,
                         'customization_id' => $customization->id,
@@ -1602,14 +780,13 @@ class CartController extends Controller
 
 
         if ($totalTime == 0) {
-            // تأكد أن المستخدم لديه FCM Tokens قبل إرسال الإشعار
             if ($user->userFcmTokens->isNotEmpty()) {
                 Log::info('Firebase credentials path:', [config('firebase.credentials_file_path')]);
 
                 try {
                     FirebaseNotification::setTitle('Your order is ready for pickup')
                         ->setBody('Your order is now ready. Please choose a suitable time to pick it up from the branch.')
-                        ->setUsers(collect([$user]))  // The customer only
+                        ->setUsers(collect([$user]))
                         ->setData([
                             'order_id' => $purchaseOrder->id,
                             'type' => 'order_ready'
@@ -1641,10 +818,9 @@ class CartController extends Controller
         ]);
     }
 
-
     protected function findAvailableDeliveryTime()
     {
-        $user = auth()->user();  // لازم تعرف $user
+        $user = auth()->user();
         $purchaseOrder = $user->customer->purchaseOrders;
 
         $customerId = auth()->user()->customer->id;
@@ -1755,7 +931,7 @@ class CartController extends Controller
                 'message' => 'address not founnd',
                 'delivery_price' => null,
                 'supported' => false,
-            ], 200); // ✅ رجّع 200 بدل 404
+            ], 200);
         }
 
 
@@ -1767,7 +943,6 @@ class CartController extends Controller
         $totalCartPrice = $cartItems->sum('price');
         $totalWithDelivery = $totalCartPrice + $deliveryPrice;
 
-        // ✅ حساب الرعبون (50%) والسعر بعده مع التوصيل
         $depositAmount = $totalCartPrice * 0.5;
         $priceAfterDepositAndDelivery = $depositAmount + $deliveryPrice;
 

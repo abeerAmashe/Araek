@@ -32,18 +32,15 @@ class PurchaseOrderController extends Controller
         $orders = $customer->purchaseOrders->map(function ($order) {
             $previewImage = null;
 
-            // صورة أول عنصر إن وجد
             if ($order->item && $order->item->count() > 0) {
                 $previewImage = $order->item[0]->image_url ?? null;
             }
 
-            // إذا ما في صورة من العناصر، نبحث عن أول صورة من الغرف
             if (!$previewImage && $order->roomOrders && $order->roomOrders->count() > 0) {
                 $firstRoom = $order->roomOrders[0]->room ?? null;
                 $previewImage = $firstRoom->image_url ?? null;
             }
 
-            // الوقت المتبقي
             $now = \Carbon\Carbon::now();
             $receiveDate = \Carbon\Carbon::parse($order->recive_date)->endOfDay();
             $remainingTime = $now->diffForHumans($receiveDate, [
@@ -52,7 +49,6 @@ class PurchaseOrderController extends Controller
                 'syntax' => \Carbon\CarbonInterface::DIFF_RELATIVE_TO_NOW
             ]);
 
-            // العناصر
             $items = $order->item->map(function ($item) {
                 return [
                     'item_id' => $item->id,
@@ -64,7 +60,6 @@ class PurchaseOrderController extends Controller
                 ];
             });
 
-            // الغرف
             $rooms = $order->roomOrders->map(function ($roomOrder) {
                 $room = $roomOrder->room;
                 return [
@@ -141,7 +136,6 @@ class PurchaseOrderController extends Controller
             ], 404);
         }
 
-        // حساب الوقت المتبقي
         $remainingTime = 'less than an hour';
         if ($order->recive_date) {
             $reciveDate = \Carbon\Carbon::parse($order->recive_date)->endOfDay();
@@ -153,7 +147,6 @@ class PurchaseOrderController extends Controller
         }
 
 
-        // تحديد أول صورة للعرض
         $previewImage = null;
         if ($order->item && $order->item->count() > 0) {
             $previewImage = $order->item[0]->image_url ?? null;
@@ -161,7 +154,6 @@ class PurchaseOrderController extends Controller
             $previewImage = $order->roomOrders[0]->room->image_url ?? null;
         }
 
-        // العناصر المرتبطة
         $items = $order->item->map(function ($item) {
             return [
                 'item_id' => $item->id,
@@ -173,7 +165,6 @@ class PurchaseOrderController extends Controller
             ];
         });
 
-        // الغرف المرتبطة
         $rooms = $order->roomOrders->map(function ($roomOrder) {
             $room = $roomOrder->room;
             return [

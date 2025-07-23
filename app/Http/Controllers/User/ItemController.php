@@ -298,10 +298,10 @@ class ItemController extends Controller
     public function getItemDetails($itemId)
     {
         $item = Item::with([
-            'itemDetail.itemWoods.wood.colors',
-            'itemDetail.itemWoods.wood.types',
-            'itemDetail.itemFabrics.fabric.colors',
-            'itemDetail.itemFabrics.fabric.types',
+            'itemDetail.wood.WoodColor',
+            'itemDetail.wood.WoodType',
+            'itemDetail.fabric.fabricColor',
+            'itemDetail.fabric.fabricType',
             'ratings.customer'
         ])->where('id', $itemId)->first();
 
@@ -317,8 +317,8 @@ class ItemController extends Controller
                 'rate' => (float) $rating->rate,
                 'customer' => [
                     'id' => $rating->customer->id,
-                    'name' => $rating->customer->name,
-                    'image_url' => $rating->customer->image_url ?? null,
+                    'name' => $rating->customer->user->name,
+                    'image_url' => $rating->customer->user->image_url ?? null,
                 ],
             ];
         });

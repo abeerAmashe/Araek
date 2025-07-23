@@ -1478,82 +1478,107 @@ class RoomController extends Controller
     //     ]);
     // }
     public function getRoomDetails(Request $request, $id)
-    {
-        $room = Room::with([
-            'roomDetail.woods.types',
-            'roomDetail.woods.colors',
-            'roomDetail.fabrics.types',
-            'roomDetail.fabrics.colors',
-        ])->findOrFail($id);
+{
+    $room = Room::with([
+        'roomDetail.wood.WoodType',
+        'roomDetail.wood.WoodColor',
+        'roomDetail.fabric.fabricType',
+        'roomDetail.fabric.fabricColor',
+        'ratings.customer.user', // تحميل ratings مع العملاء والمستخدمين
+    ])->findOrFail($id);
 
-        $allWoods = collect();
-        $allFabrics = collect();
+    $allWoods = collect();
+    $allFabrics = collect();
 
-        if ($room->roomDetail && is_iterable($room->roomDetail)) {
-            foreach ($room->roomDetail as $detail) {
-                $allWoods = $allWoods->merge(
-                    $detail->woods->map(function ($wood) {
-                        return [
-                            'id' => $wood->id,
-                            'name' => $wood->name,
-                            'price_per_meter' => $wood->price_per_meter,
-                            'types' => $wood->types->map(fn($type) => [
-                                'id' => $type->id,
-                                'wood_id' => $type->wood_id,
-                                'fabric_id' => $type->fabric_id,
-                                'name' => $type->name ?? null,
-                            ]),
-                            'colors' => $wood->colors->map(fn($color) => [
-                                'id' => $color->id,
-                                'wood_id' => $color->wood_id,
-                                'fabric_id' => $color->fabric_id,
-                                'name' => $color->name,
-                            ]),
-                        ];
-                    })
-                );
+    if ($room->roomDetail && is_iterable($room->roomDetail)) {
+        foreach ($room->roomDetail as $detail) {
+            $allWoods = $allWoods->merge(
+                $detail->woods->map(function ($wood) {
+                    return [
+                        'id' => $wood->id,
+                        'name' => $wood->name,
+                        'price_per_meter' => $wood->price_per_meter,
+                        'types' => $wood->types->map(fn($type) => [
+                            'id' => $type->id,
+                            'wood_id' => $type->wood_id,
+                            'fabric_id' => $type->fabric_id,
+                            'name' => $type->name ?? null,
+                        ]),
+                        'colors' => $wood->colors->map(fn($color) => [
+                            'id' => $color->id,
+                            'wood_id' => $color->wood_id,
+                            'fabric_id' => $color->fabric_id,
+                            'name' => $color->name,
+                        ]),
+                    ];
+                })
+            );
 
-                $allFabrics = $allFabrics->merge(
-                    $detail->fabrics->map(function ($fabric) {
-                        return [
-                            'id' => $fabric->id,
-                            'name' => $fabric->name,
-                            'price_per_meter' => $fabric->price_per_meter,
-                            'types' => $fabric->types->map(fn($type) => [
-                                'id' => $type->id,
-                                'name' => $type->name ?? null,
-                                'wood_id' => $type->wood_id,
-                                'fabric_id' => $type->fabric_id,
-                            ]),
-                            'colors' => $fabric->colors ? $fabric->colors->map(fn($color) => [
-                                'id' => $color->id,
-                                'wood_id' => $color->wood_id,
-                                'fabric_id' => $color->fabric_id,
-                                'name' => $color->name,
-                            ]) : [],
-                        ];
-                    })
-                );
-            }
+            $allFabrics = $allFabrics->merge(
+                $detail->fabrics->map(function ($fabric) {
+                    return [
+                        'id' => $fabric->id,
+                        'name' => $fabric->name,
+                        'price_per_meter' => $fabric->price_per_meter,
+                        'types' => $fabric->types->map(fn($type) => [
+                            'id' => $type->id,
+                            'name' => $type->name ?? null,
+                            'wood_id' => $type->wood_id,
+                            'fabric_id' => $type->fabric_id,
+                        ]),
+                        'colors' => $fabric->colors ? $fabric->colors->map(fn($color) => [
+                            'id' => $color->id,
+                            'wood_id' => $color->wood_id,
+                            'fabric_id' => $color->fabric_id,
+                            'name' => $color->name,
+                        ]) : [],
+                    ];
+                })
+            );
         }
-        $user = auth()->user();
-        $customerId = $user->customer->id;
-        $isFavorited = false;
-        if ($customerId) {
-            $isFavorited =Favorite::where('customer_id', $customerId)
-                ->where('room_id', $room->id)
-                ->exists();
-        }
-
-
-        return response()->json([
-            'room' => $room,
-            'woods' => $allWoods->values(),
-            'fabrics' => $allFabrics->values(),
-            'is_favorited' => $isFavorited,
-
-        ]);
     }
+
+    $user = auth()->user();
+    $customer = $user ? $user->customer : null;
+    $customerId = $customer ? $customer->id : null;
+
+    $isFavorited = false;
+    if ($customerId) {
+        $isFavorited = Favorite::where('customer_id', $customerId)
+            ->where('room_id', $room->id)
+            ->exists();
+    }
+
+    $isLiked = $customerId
+        ? \App\Models\Like::where('room_id', $room->id)->where('customer_id', $customerId)->exists()
+        : false;
+
+    $likeCounts = \App\Models\Like::where('item_id', $room->id)->count();
+
+    $averageRating = (float) $room->ratings()->avg('rate');
+
+    $ratings = $room->ratings->map(function ($rating) {
+        return [
+            'feedback' => $rating->feedback,
+            'rate' => (float) $rating->rate,
+            'customer' => [
+                'id' => $rating->customer->id,
+                'name' => $rating->customer->user->name,
+                'image_url' => $rating->customer->user->image_url ?? null,
+            ],
+        ];
+    });
+
+    return response()->json([
+        'room' => $room,
+        'ratings' => $ratings,
+        'is_liked' => $isLiked,
+        'like_counts' => $likeCounts,
+        'is_favorited' => $isFavorited,
+        'averageRating'=>$averageRating,
+    ]);
+}
+
 
     public function trendingRooms()
     {

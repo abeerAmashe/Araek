@@ -37,7 +37,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Wallet;
-
+use BilalMardini\FirebaseNotification\Facades\FirebaseNotification;
 
 class CustomerController extends Controller
 {
@@ -682,7 +682,6 @@ class CustomerController extends Controller
         ]);
     }
 
-
     public function showDiscountDetails($id)
     {
         $discount = Discount::with(['room.items', 'item'])->findOrFail($id);
@@ -737,4 +736,23 @@ class CustomerController extends Controller
             'currency' => $wallet->currency,
         ]);
     }
+
+
+
+//    public function test()
+// {
+//     try {
+//         $messaging = FirebaseNotification::messaging();
+
+//         return response()->json([
+//             'status' => 'connected',
+//             'message' => 'Firebase messaging initialized successfully',
+//         ]);
+//     } catch (\Throwable $e) {
+//         return response()->json([
+//             'error' => $e->getMessage(),
+//             'trace' => $e->getTraceAsString(),
+//         ], 500);
+//     }
+// }
 }

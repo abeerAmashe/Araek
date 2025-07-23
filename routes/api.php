@@ -213,4 +213,7 @@ Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logo
 
 
     //superManager:
-    Route::post('/changeOrderStatus',[OrderController::class,'changeOrderStatus']);
+    // Route::post('/changeOrderStatus',[OrderController::class,'changeOrderStatus']);
+
+
+    Route::get('/firebase/test', [CustomerController::class, 'test']);

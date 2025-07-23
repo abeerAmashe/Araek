@@ -26,7 +26,7 @@ class ItemController extends Controller
         $woodTypes = $item->itemDetail
             ->filter(fn($detail) => $detail->wood && $detail->wood->woodType)
             ->pluck('wood.woodType')
-            ->unique('id') 
+            ->unique('id')
             ->values()
             ->map(function ($woodType) {
                 return [
@@ -194,7 +194,7 @@ class ItemController extends Controller
             'thumbnail_url' => $thumbnailUrl
         ]);
     }
-  
+
     public function getGlbItem($id)
     {
         $item = Item::with(['itemDetail.wood', 'itemDetail.fabric'])->findOrFail($id);
@@ -346,130 +346,139 @@ class ItemController extends Controller
 
     //     return response()->json($response);
     // }
-public function getItemDetails($itemId)
-{
-    // جلب العنصر مع تفاصيله فقط (بدون علاقات عميقة)
-    $item = Item::with('itemDetail')->find($itemId);
+    public function getItemDetails($itemId)
+    {
+        // جلب العنصر مع تفاصيله فقط (بدون علاقات عميقة)
+        $item = Item::with('itemDetail')->find($itemId);
 
-    if (!$item) {
-        return response()->json(['message' => 'Item not found'], 404);
-    }
+        if (!$item) {
+            return response()->json(['message' => 'Item not found'], 404);
+        }
 
-    // نجمع بيانات woods و fabrics بناءً على itemDetails
-    $woods = collect();
-    $fabrics = collect();
+        // نجمع بيانات woods و fabrics بناءً على itemDetails
+        $woods = collect();
+        $fabrics = collect();
 
-    foreach ($item->itemDetail as $detail) {
-        // جلب بيانات الخشب المرتبطة
-        if ($detail->wood_id) {
-            $wood = \App\Models\Wood::with(['WoodColor', 'WoodType'])->find($detail->wood_id);
-            if ($wood) {
-                $woods->push([
-                    'id' => $wood->id,
-                    'name' => $wood->name,
-                    'price_per_meter' => $wood->price_per_meter ?? null,
-                    'color' => $wood->WoodColor ? [
-                        'id' => $wood->WoodColor->id,
-                        'name' => $wood->WoodColor->name,
-                    ] : null,
-                    'type' => $wood->WoodType ? [
-                        'id' => $wood->WoodType->id,
-                        'name' => $wood->WoodType->name,
-                        'price_per_meter' => $wood->WoodType->price_per_meter,
-                    ] : null,
-                ]);
+        foreach ($item->itemDetail as $detail) {
+            // جلب بيانات الخشب المرتبطة
+            if ($detail->wood_id) {
+                $wood = \App\Models\Wood::with(['WoodColor', 'WoodType'])->find($detail->wood_id);
+                if ($wood) {
+                    $woods->push([
+                        'id' => $wood->id,
+                        'name' => $wood->name,
+                        'price_per_meter' => $wood->price_per_meter ?? null,
+                        'color' => $wood->WoodColor ? [
+                            'id' => $wood->WoodColor->id,
+                            'name' => $wood->WoodColor->name,
+                        ] : null,
+                        'type' => $wood->WoodType ? [
+                            'id' => $wood->WoodType->id,
+                            'name' => $wood->WoodType->name,
+                            'price_per_meter' => $wood->WoodType->price_per_meter,
+                        ] : null,
+                    ]);
+                }
+            }
+
+            // جلب بيانات القماش المرتبطة
+            if ($detail->fabric_id) {
+                $fabric = \App\Models\Fabric::with(['fabricColor', 'fabricType'])->find($detail->fabric_id);
+                if ($fabric) {
+                    $fabrics->push([
+                        'id' => $fabric->id,
+                        'name' => $fabric->name,
+                        'price_per_meter' => $fabric->price_per_meter ?? null,
+                        'color' => $fabric->fabricColor ? [
+                            'id' => $fabric->fabricColor->id,
+                            'name' => $fabric->fabricColor->name,
+                        ] : null,
+                        'type' => $fabric->fabricType ? [
+                            'id' => $fabric->fabricType->id,
+                            'name' => $fabric->fabricType->name,
+                            'price_per_meter' => $fabric->fabricType->price_per_meter,
+                        ] : null,
+                    ]);
+                }
             }
         }
 
-        // جلب بيانات القماش المرتبطة
-        if ($detail->fabric_id) {
-            $fabric = \App\Models\Fabric::with(['fabricColor', 'fabricType'])->find($detail->fabric_id);
-            if ($fabric) {
-                $fabrics->push([
-                    'id' => $fabric->id,
-                    'name' => $fabric->name,
-                    'price_per_meter' => $fabric->price_per_meter ?? null,
-                    'color' => $fabric->fabricColor ? [
-                        'id' => $fabric->fabricColor->id,
-                        'name' => $fabric->fabricColor->name,
-                    ] : null,
-                    'type' => $fabric->fabricType ? [
-                        'id' => $fabric->fabricType->id,
-                        'name' => $fabric->fabricType->name,
-                        'price_per_meter' => $fabric->fabricType->price_per_meter,
-                    ] : null,
-                ]);
-            }
-        }
-    }
-
-    // احصائيات التقييمات
-    $averageRating = (float) $item->ratings()->avg('rate');
-    $ratings = $item->ratings->map(function ($rating) {
-        return [
-            'feedback' => $rating->feedback,
-            'rate' => (float) $rating->rate,
-            'customer' => [
-                'id' => $rating->customer->id,
-                'name' => $rating->customer->user->name ?? null,
-                'image_url' => $rating->customer->user->image_url ?? null,
-            ],
-        ];
-    });
-
-    // حالة المستخدم الحالي من حيث الإعجاب والمفضلة
-    $userId = auth()->id();
-    $customer = $userId ? \App\Models\Customer::where('user_id', $userId)->first() : null;
-    $customerId = $customer ? $customer->id : null;
-
-    $isLiked = $customerId
-        ? \App\Models\Like::where('item_id', $itemId)->where('customer_id', $customerId)->exists()
-        : false;
-
-    $isFavorite = $customerId
-        ? \App\Models\Favorite::where('item_id', $itemId)->where('customer_id', $customerId)->exists()
-        : false;
-
-    $likeCounts = \App\Models\Like::where('item_id', $itemId)->count();
-
-    // بناء الرد
-    $response = [
-        'item' => [
-            'id' => $item->id,
-            'name' => $item->name,
-            'image_url' => $item->image_url,
-            'description' => $item->description,
-            'price' => $item->price,
-            'time' => $item->time,
-            'count' => $item->count,
-            'count_reserved' => $item->count_reserved,
-        ],
-
-        'item_details' => $item->itemDetail->map(function ($detail) {
+        // احصائيات التقييمات
+        $averageRating = (float) $item->ratings()->avg('rate');
+        $ratings = $item->ratings->map(function ($rating) {
             return [
-                'id' => $detail->id,
-                'wood_length' => $detail->wood_length,
-                'wood_width' => $detail->wood_width,
-                'wood_height' => $detail->wood_height,
-                'fabric_length' => $detail->fabric_length,
-                'fabric_width' => $detail->fabric_width,
-                'fabric_dimension' => $detail->fabric_dimension,
-                'wood_area_m2' => $detail->wood_area_m2,
+                'feedback' => $rating->feedback,
+                'rate' => (float) $rating->rate,
+                'customer' => [
+                    'id' => $rating->customer->id,
+                    'name' => $rating->customer->user->name ?? null,
+                    'image_url' => $rating->customer->user->image_url ?? null,
+                ],
             ];
-        }),
+        });
 
-        'woods' => $woods->values(),
-        'fabrics' => $fabrics->values(),
+        // حالة المستخدم الحالي من حيث الإعجاب والمفضلة
+        $userId = auth()->id();
+        $customer = $userId ? \App\Models\Customer::where('user_id', $userId)->first() : null;
+        $customerId = $customer ? $customer->id : null;
 
-        'average_rating' => round($averageRating, 2),
-        'ratings' => $ratings,
-        'is_liked' => $isLiked,
-        'is_favorite' => $isFavorite,
-        'like_counts' => $likeCounts,
-    ];
+        $isLiked = $customerId
+            ? \App\Models\Like::where('item_id', $itemId)->where('customer_id', $customerId)->exists()
+            : false;
 
-    return response()->json($response);
-}
+        $isFavorite = $customerId
+            ? \App\Models\Favorite::where('item_id', $itemId)->where('customer_id', $customerId)->exists()
+            : false;
+
+        $likeCounts = \App\Models\Like::where('item_id', $itemId)->count();
+
+        // بناء الرد
+        $response = [
+            'item' => [
+                'id' => $item->id,
+                'name' => $item->name,
+                'image_url' => $item->image_url,
+                'description' => $item->description,
+                'price' => $item->price,
+                'time' => $item->time,
+                'count' => $item->count,
+                'count_reserved' => $item->count_reserved,
+            ],
+
+            'item_details' => $item->itemDetail->map(function ($detail) {
+                return [
+                    'id' => $detail->id,
+                    'wood_length' => $detail->wood_length,
+                    'wood_width' => $detail->wood_width,
+                    'wood_height' => $detail->wood_height,
+                    'fabric_length' => $detail->fabric_length,
+                    'fabric_width' => $detail->fabric_width,
+                    'fabric_dimension' => $detail->fabric_dimension,
+                    'wood_area_m2' => $detail->wood_area_m2,
+                ];
+            }),
+
+            'woods' => $woods->values(),
+            'fabrics' => $fabrics->values(),
+
+            'average_rating' => round($averageRating, 2),
+            'ratings' => $ratings,
+            'is_liked' => $isLiked,
+            'is_favorite' => $isFavorite,
+            'like_counts' => $likeCounts,
+        ];
+
+
+        $firstWood = $woods->first();
+        $firstFabric = $fabrics->first();
+
+        $response['wood_color'] = $firstWood['color']['name'] ?? null;
+        $response['wood_type'] = $firstWood['type']['name'] ?? null;
+        $response['fabric_color'] = $firstFabric['color']['name'] ?? null;
+        $response['fabric_type'] = $firstFabric['type']['name'] ?? null;
+
+        return response()->json($response);
+    }
 
     public function customizeItem(Request $request, Item $item)
     {
@@ -717,5 +726,4 @@ public function getItemDetails($itemId)
             'available_fabrics' => $fabricOptions->unique('fabric_id')->values(),
         ]);
     }
-    
 }

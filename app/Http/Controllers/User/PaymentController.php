@@ -62,4 +62,64 @@ class PaymentController extends Controller
             'operations' => $operations
         ]);
     }
+
+      public function ChargeInvestmentWallet(Request $request)
+    {
+        $request->validate([
+            'token' => 'required|string',
+            'amount' => 'required|numeric|min:1',
+            'description' => 'nullable|string',
+            'payment_method' => 'required|string',
+            'currency' => 'nullable|string',
+        ]);
+
+        try {
+            $user = auth()->user();
+            $wallet = $user->wallets()->where('wallet_type', 'investment')->first();
+
+            if (!$wallet) {
+                return response()->json(['message' => 'Wallet not found'], 404);
+            }
+
+            $stripe = new \Stripe\StripeClient(env('STRIPE_SECRET'));
+
+            $charge = $stripe->charges->create([
+                'amount' => $request->amount,
+                'currency' => $request->currency ?? 'usd',
+                'source' => $request->token,
+                'description' => $request->description ?? 'Wallet top-up',
+            ]);
+
+            $amountInDollars = $request->amount;
+
+            DB::transaction(function () use ($user, $wallet, $charge, $amountInDollars, $request) {
+                $transaction = Transaction::create([
+                    'user_id' => $user->id,
+                    'wallet_id' => $wallet->id,
+                    'amount' => $amountInDollars,
+                    'type' => 'deposit',
+                    'status' => 'completed',
+                    'stripe_payment_id' => $charge->id,
+                ]);
+
+                StripePayment::create([
+                    'transaction_id' => $transaction->id,
+                    'payment_intent_id' => $charge->id,
+                    'amount' => $amountInDollars,
+                    'currency' => $charge->currency,
+                    'payment_method' => $charge->payment_method ?? $request->payment_method,
+                    'status' => $charge->status,
+                    'receipt_url' => $charge->receipt_url ?? null,
+                ]);
+
+                $wallet->increment('balance', $amountInDollars);
+            });
+
+            return response()->json(['message' => 'Wallet charged successfully.']);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Payment failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

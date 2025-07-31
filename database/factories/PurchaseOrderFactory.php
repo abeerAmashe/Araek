@@ -30,8 +30,8 @@ class PurchaseOrderFactory extends Factory
             'address' => $this->faker->address(),
             'delivery_price' => $wantDelivery === 'yes' ? $this->faker->randomFloat(2, 10, 100) : 0,
             'rabbon' => $this->faker->optional()->randomFloat(2, 5, 500),
-            'price_after_rabbon' => null, // يُحسب لاحقًا بناء على منطق الحسم
-            'price_after_rabbon_with_delivery' => null, // كذلك
+            'price_after_rabbon' => null,
+            'price_after_rabbon_with_delivery' => null, 
             'branch_id' => Branch::factory(),
         ];
     }

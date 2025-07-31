@@ -13,7 +13,6 @@ class CustomerFactory extends Factory
 
     public function definition()
     {
-        // تحديد مسار المجلد الذي يحتوي على الصور
         $profileImages = [
             'default.jpeg',
             'img1.JPG',

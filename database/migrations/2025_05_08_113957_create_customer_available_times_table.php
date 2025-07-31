@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('customer_available_times', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('customer_id');
-            $table->unsignedBigInteger('purchase_order_id')->nullable(); // إذا بدك تربطها لاحقاً
+            $table->unsignedBigInteger('purchase_order_id')->nullable(); 
             $table->dateTime('available_at');
             $table->timestamps();
 

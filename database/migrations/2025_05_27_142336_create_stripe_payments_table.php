@@ -13,14 +13,14 @@ return new class extends Migration
     {
         Schema::create('stripe_payments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('transaction_id')->constrained()->onDelete('cascade'); // العلاقة مع transaction
-            $table->string('payment_intent_id')->unique();                           // معرّف الدفع من Stripe
+            $table->foreignId('transaction_id')->constrained()->onDelete('cascade'); 
+            $table->string('payment_intent_id')->unique();                           
             $table->decimal('amount', 15, 2);
             $table->string('currency', 3)->default('usd');
-            $table->string('payment_method');                                        // نوع البطاقة أو الوسيلة
-            $table->string('status', 50);                                            // succeeded, failed...
-            $table->string('receipt_url', 512)->nullable();                          // رابط الفاتورة من Stripe
-            $table->json('metadata')->nullable();                                    // بيانات إضافية إن وُجدت
+            $table->string('payment_method');                                        
+            $table->string('status', 50);                                            
+            $table->string('receipt_url', 512)->nullable();                          
+            $table->json('metadata')->nullable();                                   
             $table->timestamps();
         });
     }

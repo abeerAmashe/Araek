@@ -15,7 +15,7 @@ class LikeFactory extends Factory
         return [
             'customer_id' => Customer::factory(),
             'item_id' => Item::factory(),
-            'room_id' => null, // not relevant here
+            'room_id' => null, 
         ];
     }
 }

@@ -1,6 +1,5 @@
 <?php
 
-// database/seeders/AvailableTimeSeeder.php
 
 namespace Database\Seeders;
 

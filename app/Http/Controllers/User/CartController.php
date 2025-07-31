@@ -70,6 +70,7 @@ class CartController extends Controller
             $partialTime = $missingCount * $item->time;
 
             $pricePerItem = (float) $item->price;
+   
             $timePerItem = (float) $item->time;
 
             if ($reservedNow > 0) {

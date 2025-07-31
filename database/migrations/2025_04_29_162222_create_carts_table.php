@@ -23,13 +23,13 @@ return new class extends Migration
             $table->foreignId('customization_id')->nullable()->constrained('customizations')->cascadeOnDelete();
             $table->foreignId('room_customization_id')->nullable()->constrained('room_customizations')->cascadeOnDelete();
             $table->integer('count');
-            $table->integer('available_count_at_addition')->default(0); // لحفظ الكمية المتاحة وقت الإضافة
+            $table->integer('available_count_at_addition')->default(0);
             $table->decimal('time_per_item', 8, 2)->nullable();
             $table->decimal('price_per_item', 10, 2)->nullable();
             $table->decimal('time', 10, 2)->nullable();
             $table->decimal('price', 10, 2)->nullable();
-            $table->integer('count_reserved')->default(0); // عدد القطع المحجوزة فعليًا لهذا السطر في السلة
-            $table->timestamp('reserved_at')->default(DB::raw('CURRENT_TIMESTAMP')); // Add 'reserved_at' column
+            $table->integer('count_reserved')->default(0); 
+            $table->timestamp('reserved_at')->default(DB::raw('CURRENT_TIMESTAMP')); 
 
             $table->timestamps();
         });

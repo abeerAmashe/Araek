@@ -11,10 +11,8 @@ class FavoriteSeeder extends Seeder
 {
     public function run(): void
     {
-        // مفضلات لعناصر
         Favorite::factory()->count(10)->create();
 
-        // مفضلات لغرف
         $customers = Customer::all();
         $rooms = Room::all();
 

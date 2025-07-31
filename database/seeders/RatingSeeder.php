@@ -14,7 +14,6 @@ class RatingSeeder extends Seeder
         $customers = Customer::all();
 
         Room::all()->each(function ($room) use ($customers) {
-            // نضيف مثلاً 3 تقييمات عشوائية لكل غرفة
             for ($i = 0; $i < 3; $i++) {
                 Rating::factory()->create([
                     'room_id' => $room->id,

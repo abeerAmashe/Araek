@@ -25,7 +25,7 @@ class CartFactory extends Factory
             'room_customization_id' => null,
             'time' => 0,
             'price' => 0,
-            'count_reserved' => $this->faker->numberBetween(0, 5), // عدد القطع المحجوزة
+            'count_reserved' => $this->faker->numberBetween(0, 5), 
             'available_count_at_addition' => $this->faker->numberBetween(1, 20),
             'reserved_at' => $this->faker->dateTimeBetween('now', '+7 days'), 
         ];

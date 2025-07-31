@@ -15,8 +15,8 @@ class RoomWoodFactory extends Factory
     public function definition()
     {
         return [
-            'room_id' => \App\Models\Room::inRandomOrder()->first()->id, // ربط الغرفة بشكل عشوائي
-            'wood_id' => \App\Models\Wood::inRandomOrder()->first()->id, // ربط الخشب بشكل عشوائي
+            'room_id' => \App\Models\Room::inRandomOrder()->first()->id, 
+            'wood_id' => \App\Models\Wood::inRandomOrder()->first()->id, 
         ];
     }
 }

@@ -19,25 +19,21 @@ class Transaction extends Model
         'related_transaction_id',
     ];
 
-    // علاقة: Transaction تعود لمستخدم
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    // علاقة: Transaction تتبع لمحفظة
     public function wallet()
     {
         return $this->belongsTo(Wallet::class);
     }
 
-    // علاقة: transaction لها سجل دفع Stripe (إن وجد)
     public function stripePayment()
     {
         return $this->hasOne(StripePayment::class);
     }
 
-    // علاقة: transaction مرتبطة بتحويل (عكسي أو مكمل)
     public function relatedTransaction()
     {
         return $this->belongsTo(Transaction::class, 'related_transaction_id');

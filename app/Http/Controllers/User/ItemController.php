@@ -277,90 +277,18 @@ class ItemController extends Controller
         return $result;
     }
 
-    // public function getItemDetails($itemId)
-    // {
-    //     $item = Item::with([
-    //         'itemDetail.wood.WoodColor',
-    //         'itemDetail.wood.WoodType',
-    //         'itemDetail.fabric.fabricColor',
-    //         'itemDetail.fabric.fabricType',
-    //         'ratings.customer'
-    //     ])->where('id', $itemId)->first();
-
-    //     if (!$item) {
-    //         return response()->json(['message' => 'Item not found']);
-    //     }
-
-    //     $averageRating = (float) $item->ratings()->avg('rate');
-
-    //     $ratings = $item->ratings->map(function ($rating) {
-    //         return [
-    //             'feedback' => $rating->feedback,
-    //             'rate' => (float) $rating->rate,
-    //             'customer' => [
-    //                 'id' => $rating->customer->id,
-    //                 'name' => $rating->customer->user->name,
-    //                 'image_url' => $rating->customer->user->image_url ?? null,
-    //             ],
-    //         ];
-    //     });
-
-    //     $userId = auth()->id();
-    //     $customer = $userId ? \App\Models\Customer::where('user_id', $userId)->first() : null;
-
-    //     $customerId = $customer ? $customer->id : null;
-
-    //     $isLiked = $customerId
-    //         ? \App\Models\Like::where('item_id', $itemId)->where('customer_id', $customerId)->exists()
-    //         : false;
-
-    //     $isFavorite = $customerId
-    //         ? \App\Models\Favorite::where('item_id', $itemId)->where('customer_id', $customerId)->exists()
-    //         : false;
-
-    //     $likeCounts = \App\Models\Like::where('item_id', $itemId)->count();
-
-    //     $response = [
-    //         'item' => [
-    //             'id' => $item->id,
-    //             'name' => $item->name,
-    //             'image_url' => $item->image_url,
-    //             'description' => $item->description,
-    //             'price' => $item->price,
-    //             'time' => $item->time,
-    //             'count' => $item->count,
-    //             'count_reserved' => $item->count_reserved,
-    //             'wood_color' => $item->wood_color,
-    //             'wood_type' => $item->wood_type,
-    //             'fabric_color' => $item->fabric_color,
-    //             'fabric_type' => $item->fabric_type,
-    //         ],
-
-    //         'item_details' => $item->itemDetail,
-    //         'average_rating' => (float) round($averageRating, 2),
-    //         'ratings' => $ratings,
-    //         'is_liked' => $isLiked,
-    //         'is_favorite' => $isFavorite,
-    //         'like_counts' => $likeCounts,
-    //     ];
-
-    //     return response()->json($response);
-    // }
     public function getItemDetails($itemId)
     {
-        // جلب العنصر مع تفاصيله فقط (بدون علاقات عميقة)
         $item = Item::with('itemDetail')->find($itemId);
 
         if (!$item) {
             return response()->json(['message' => 'Item not found'], 404);
         }
 
-        // نجمع بيانات woods و fabrics بناءً على itemDetails
         $woods = collect();
         $fabrics = collect();
 
         foreach ($item->itemDetail as $detail) {
-            // جلب بيانات الخشب المرتبطة
             if ($detail->wood_id) {
                 $wood = \App\Models\Wood::with(['WoodColor', 'WoodType'])->find($detail->wood_id);
                 if ($wood) {
@@ -381,7 +309,6 @@ class ItemController extends Controller
                 }
             }
 
-            // جلب بيانات القماش المرتبطة
             if ($detail->fabric_id) {
                 $fabric = \App\Models\Fabric::with(['fabricColor', 'fabricType'])->find($detail->fabric_id);
                 if ($fabric) {
@@ -403,7 +330,6 @@ class ItemController extends Controller
             }
         }
 
-        // احصائيات التقييمات
         $averageRating = (float) $item->ratings()->avg('rate');
         $ratings = $item->ratings->map(function ($rating) {
             return [
@@ -417,7 +343,6 @@ class ItemController extends Controller
             ];
         });
 
-        // حالة المستخدم الحالي من حيث الإعجاب والمفضلة
         $userId = auth()->id();
         $customer = $userId ? \App\Models\Customer::where('user_id', $userId)->first() : null;
         $customerId = $customer ? $customer->id : null;
@@ -432,7 +357,6 @@ class ItemController extends Controller
 
         $likeCounts = \App\Models\Like::where('item_id', $itemId)->count();
 
-        // بناء الرد
         $response = [
             'item' => [
                 'id' => $item->id,

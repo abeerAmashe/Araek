@@ -12,7 +12,7 @@ class FabricColorFactory extends Factory
     public function definition()
     {
         return [
-            'name' => $this->faker->colorName(), // يعطي أسماء ألوان مثل: "Red", "Blue", "Beige"
+            'name' => $this->faker->colorName(), 
         ];
     }
 }

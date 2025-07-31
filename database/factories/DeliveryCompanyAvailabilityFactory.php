@@ -14,8 +14,8 @@ class DeliveryCompanyAvailabilityFactory extends Factory
     {
         return [
             'day_of_week' => $this->faker->dayOfWeek,
-            'start_time' => $this->faker->time, // إضافة الوقت بداية
-            'end_time' => $this->faker->time,   // إضافة الوقت نهاية
+            'start_time' => $this->faker->time, 
+            'end_time' => $this->faker->time,   
         ];
     }
 }

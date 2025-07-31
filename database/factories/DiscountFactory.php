@@ -12,7 +12,6 @@ class DiscountFactory extends Factory
 
     public function definition()
     {
-        // جلب room و item موجودين أو توليدهم
         $room = Room::inRandomOrder()->first() ?? Room::factory()->create();
         $item = Item::inRandomOrder()->first() ?? Item::factory()->create();
 

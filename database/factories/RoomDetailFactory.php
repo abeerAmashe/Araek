@@ -15,9 +15,9 @@ class RoomDetailFactory extends Factory
     public function definition()
     {
         return [
-            'room_id' => Room::factory(),      // ينشئ Room جديد أو يمكنك وضع ID موجود
-            'wood_id' => Wood::factory(),      // ينشئ Wood جديد أو ID موجود
-            'fabric_id' => Fabric::factory(),  // ينشئ Fabric جديد أو ID موجود
+            'room_id' => Room::factory(),      
+            'wood_id' => Wood::factory(),      
+            'fabric_id' => Fabric::factory(),  
         ];
     }
 }

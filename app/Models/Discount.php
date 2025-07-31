@@ -1,8 +1,5 @@
 <?php
 
-// app/Models/Discount.php
-// app/Models/Discount.php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;

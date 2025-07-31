@@ -9,7 +9,6 @@ class ItemDetailSeeder extends Seeder
 {
     public function run()
     {
-        // توليد 30 سجل عشوائي في جدول item_details
         ItemDetail::factory()->count(30)->create();
     }
 }

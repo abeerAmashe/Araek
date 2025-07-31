@@ -40,7 +40,6 @@ class WorkshopOrderController extends Controller
             return response()->json(['message' => 'No valid order ID provided.'], 400);
         }
 
-        // Check if all related orders are marked as complete
         $allComplete =
             $purchaseOrder->roomOrders()->where('status', '!=', 'complete')->count() === 0 &&
             $purchaseOrder->itemOrders()->where('status', '!=', 'complete')->count() === 0 &&
@@ -49,9 +48,8 @@ class WorkshopOrderController extends Controller
 
         if ($allComplete) {
             $user = $purchaseOrder->customer->user;
-            $formattedTime = now()->addDay()->format('Y-m-d H:i'); // أو حسب النظام عندك
+            $formattedTime = now()->addDay()->format('Y-m-d H:i');
 
-            // ✅ تحديث الحالة إلى complete
             $purchaseOrder->status = 'complete';
             $purchaseOrder->delivery_status = 'scheduled';
             $purchaseOrder->delivery_time = $formattedTime;

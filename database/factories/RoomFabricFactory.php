@@ -15,8 +15,8 @@ class RoomFabricFactory extends Factory
     public function definition()
     {
         return [
-            'room_id' => \App\Models\Room::inRandomOrder()->first()->id, // ربط الغرفة بشكل عشوائي
-            'fabric_id' => \App\Models\Fabric::inRandomOrder()->first()->id, // ربط القماش بشكل عشوائي
+            'room_id' => \App\Models\Room::inRandomOrder()->first()->id, 
+            'fabric_id' => \App\Models\Fabric::inRandomOrder()->first()->id, 
         ];
     }
 }

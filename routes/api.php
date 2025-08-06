@@ -87,6 +87,12 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/getCustomerCustomizations', [CustomerController::class, 'getAllCustomizationsForCustomer']);
+});
+
+
+
 //AR
 Route::post('/uploadGlb/{id}', [ItemController::class, 'uploadGlb']);
 

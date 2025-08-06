@@ -27,6 +27,7 @@ use App\Models\PlaceCost;
 use App\Models\PurchaseOrder;
 use App\Models\Rating;
 use App\Models\Room;
+use App\Models\RoomCustomization;
 use App\Models\RoomOrder;
 use App\Models\StripePayment;
 use App\Models\Transaction;
@@ -47,7 +48,7 @@ class CustomerController extends Controller
 
         return response()->json(['categories' => $categories], 200);
     }
-    
+
     public function addDeliveryAddress(Request $request)
     {
         $user = auth()->user();
@@ -76,7 +77,7 @@ class CustomerController extends Controller
 
         ], 201);
     }
-    
+
     public function addFeedback(Request $request)
     {
         $user = auth()->user();
@@ -170,7 +171,7 @@ class CustomerController extends Controller
             cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)));
         return $angle * $earthRadius;
     }
-    
+
     public function getType()
     {
         $itemTypes = ItemType::all();
@@ -194,7 +195,7 @@ class CustomerController extends Controller
             'items' => $items,
         ]);
     }
-    
+
     public function searchItemsByTypeName(Request $request)
     {
         $typeName = $request->query('type_name');
@@ -244,7 +245,7 @@ class CustomerController extends Controller
             'items' => $itemsWithTypeName
         ]);
     }
-    
+
     public function filterItemsWithType(Request $request)
     {
         $request->validate([
@@ -308,7 +309,7 @@ class CustomerController extends Controller
             'items' => $itemsFormatted
         ]);
     }
-    
+
     private function validateCartReservations($customerId)
     {
         $cartItems = Cart::where('customer_id', $customerId)->get();
@@ -361,7 +362,7 @@ class CustomerController extends Controller
                 }
             }
         }
-    }    
+    }
 
     public function addToCartFavorite(Request $request)
     {
@@ -518,7 +519,7 @@ class CustomerController extends Controller
 
         return response()->json([
             'message' => 'Favorites added to cart successfully',
-       
+
         ]);
     }
 
@@ -557,7 +558,7 @@ class CustomerController extends Controller
 
         return response()->json($response);
     }
-    
+
     public function getUserBalance()
     {
         $user = auth()->user();
@@ -577,5 +578,56 @@ class CustomerController extends Controller
             'currency' => $wallet->currency,
         ]);
     }
+
+
+    public function getAllCustomizationsForCustomer()
+{
+    $customerId = Auth::user()->customer->id;
+
+    $itemCustomizations = collect(
+        Customization::with('item')
+            ->where('customer_id', $customerId)
+            ->get()
+            ->map(function ($customization) {
+                return [
+                    'type' => 'item',
+                    'name' => $customization->item->name ?? 'Unnamed Item',
+                    'image' => $customization->item->image_url
+                        ? asset('storage/' . $customization->item->image)
+                        : null,
+                    'estimated_price' => $customization->final_price,
+                    'estimated_time' => $customization->final_time . ' days',
+                ];
+            })
+    );
+
+    $roomCustomizations = collect(
+        RoomCustomization::with('room')
+            ->where('customer_id', $customerId)
+            ->get()
+            ->map(function ($roomCustomization) {
+                return [
+                    'type' => 'room',
+                    'name' => $roomCustomization->room->name ?? 'Unnamed Room',
+                    'image' => $roomCustomization->room->image_url
+                        ? asset('storage/' . $roomCustomization->room->image)
+                        : null,
+                    'estimated_price' => $roomCustomization->final_price,
+                    'estimated_time' => $roomCustomization->final_time . ' days',
+                ];
+            })
+    );
+
+    // دمج وتنسيق النتيجة
+    $allCustomizations = $itemCustomizations
+        ->merge($roomCustomizations)
+        ->sortByDesc('estimated_price')
+        ->values();
+
+    return response()->json([
+        'status' => true,
+        'data' => $allCustomizations,
+    ]);
+}
 
 }

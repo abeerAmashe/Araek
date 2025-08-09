@@ -1,6 +1,10 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\GallaryController;
+use App\Http\Controllers\GallaryManager\GallaryController as GallaryManagerGallaryController;
+use App\Http\Controllers\GallaryManager\ProfileController as GallaryManagerProfileController;
+use App\Http\Controllers\GallaryManager\SubManagerController;
 use App\Http\Controllers\SuperManager\OrderController;
 use App\Http\Controllers\User\CartController;
 use App\Http\Controllers\User\ComplaintController;
@@ -17,6 +21,7 @@ use App\Http\Controllers\User\RoomController;
 use App\Models\Customer;
 use App\Models\CustomizationOrder;
 use App\Models\Room;
+use App\Models\WorkshopManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -218,5 +223,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 
-    //superManager:
-    // Route::post('/changeOrderStatus',[OrderController::class,'changeOrderStatus']);
+//superManager:
+// Route::post('/changeOrderStatus',[OrderController::class,'changeOrderStatus']);
+//super Manager:
+
+Route::middleware(['auth:sanctum', 'gallaryManager'])->group(function () {
+    Route::get('/gallary-manager-info', [GallaryManagerProfileController::class, 'getGallaryManagerInfo']);
+
+    Route::get('/sub-manager/{id}', [SubManagerController::class, 'show']);
+});

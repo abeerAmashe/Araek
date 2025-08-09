@@ -12,7 +12,8 @@ class Branch extends Model
     protected $fillable = [
         'address',
         'latitude',
-        'longitude'
+        'longitude',
+        'gallary_manager_id'
     ];
 
     public function room()

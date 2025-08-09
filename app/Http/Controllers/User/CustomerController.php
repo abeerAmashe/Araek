@@ -581,53 +581,52 @@ class CustomerController extends Controller
 
 
     public function getAllCustomizationsForCustomer()
-{
-    $customerId = Auth::user()->customer->id;
+    {
+        $customerId = Auth::user()->customer->id;
 
-    $itemCustomizations = collect(
-        Customization::with('item')
-            ->where('customer_id', $customerId)
-            ->get()
-            ->map(function ($customization) {
-                return [
-                    'type' => 'item',
-                    'name' => $customization->item->name ?? 'Unnamed Item',
-                    'image' => $customization->item->image_url
-                        ? asset('storage/' . $customization->item->image)
-                        : null,
-                    'estimated_price' => $customization->final_price,
-                    'estimated_time' => $customization->final_time . ' days',
-                ];
-            })
-    );
+        $itemCustomizations = collect(
+            Customization::with('item')
+                ->where('customer_id', $customerId)
+                ->get()
+                ->map(function ($customization) {
+                    return [
+                        'type' => 'item',
+                        'name' => $customization->item->name ?? 'Unnamed Item',
+                        'image' => $customization->item->image_url
+                            ? asset('storage/' . $customization->item->image)
+                            : null,
+                        'estimated_price' => (float)$customization->final_price,
+                        'estimated_time' =>(int) $customization->final_time,
+                    ];
+                })
+        );
 
-    $roomCustomizations = collect(
-        RoomCustomization::with('room')
-            ->where('customer_id', $customerId)
-            ->get()
-            ->map(function ($roomCustomization) {
-                return [
-                    'type' => 'room',
-                    'name' => $roomCustomization->room->name ?? 'Unnamed Room',
-                    'image' => $roomCustomization->room->image_url
-                        ? asset('storage/' . $roomCustomization->room->image)
-                        : null,
-                    'estimated_price' => $roomCustomization->final_price,
-                    'estimated_time' => $roomCustomization->final_time . ' days',
-                ];
-            })
-    );
+        $roomCustomizations = collect(
+            RoomCustomization::with('room')
+                ->where('customer_id', $customerId)
+                ->get()
+                ->map(function ($roomCustomization) {
+                    return [
+                        'type' => 'room',
+                        'name' => $roomCustomization->room->name ?? 'Unnamed Room',
+                        'image' => $roomCustomization->room->image_url
+                            ? asset('storage/' . $roomCustomization->room->image)
+                            : null,
+                        'estimated_price' =>(float) $roomCustomization->final_price,
+                        'estimated_time' => (int)$roomCustomization->final_time ,
+                    ];
+                })
+        );
 
-    // دمج وتنسيق النتيجة
-    $allCustomizations = $itemCustomizations
-        ->merge($roomCustomizations)
-        ->sortByDesc('estimated_price')
-        ->values();
+        // دمج وتنسيق النتيجة
+        $allCustomizations = $itemCustomizations
+            ->merge($roomCustomizations)
+            ->sortByDesc('estimated_price')
+            ->values();
 
-    return response()->json([
-        'status' => true,
-        'data' => $allCustomizations,
-    ]);
-}
-
+        return response()->json([
+            'status' => true,
+            'data' => $allCustomizations,
+        ]);
+    }
 }

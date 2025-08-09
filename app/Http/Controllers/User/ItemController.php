@@ -54,7 +54,7 @@ class ItemController extends Controller
                 return [
                     'id' => $wood->woodColor->id,
                     'name' => $wood->woodColor->name,
-                    'price_per_meter' => $wood->woodType->price_per_meter ?? 0,
+                    'price_per_meter' => (float)$wood->woodType->price_per_meter ?? 0,
                 ];
             })
             ->values();

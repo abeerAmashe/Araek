@@ -22,6 +22,6 @@ class GallaryManager extends Model
 
     public function branch()
     {
-        return $this->hasOne(Branch::class);
+        return $this->hasMany(Branch::class);
     }
 }

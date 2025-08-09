@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('branchs', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('gallary_manager_id')->constrained('gallary_managers')->onDelete('cascade');
             $table->string('address')->nullable();
             $table->decimal('latitude', 10, 7)->nullable();
             $table->decimal('longitude', 10, 7)->nullable();

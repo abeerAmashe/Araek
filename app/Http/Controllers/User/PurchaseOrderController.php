@@ -52,7 +52,7 @@ class PurchaseOrderController extends Controller
             $items = $order->item->map(function ($item) {
                 return [
                     'item_id' => $item->id,
-                    'room_id' => $item->room_id,
+                    // 'room_id' => $item->room_id,
                     'name' => $item->name,
                     'price' => $item->price,
                     'count' => $item->pivot->count,
@@ -63,12 +63,32 @@ class PurchaseOrderController extends Controller
             $rooms = $order->roomOrders->map(function ($roomOrder) {
                 $room = $roomOrder->room;
                 return [
-                    'item_id' => null,
+                    // 'item_id' => null,
                     'room_id' => $room->id ?? null,
                     'name' => $room->name ?? null,
                     'price' => $room->price ?? null,
                     'count' => $roomOrder->count,
                     'image_url' => $room->image_url ?? null,
+                ];
+            });
+            $customizations = $order->customizationOrders->map(function ($customOrder) {
+                $customization = $customOrder->customization;
+                return [
+                    'customization_id' => $customization->id ?? null,
+                    'name' => $customization->item->name ?? null,
+                    'price' => $customization->final_price ?? null,
+                    'count' => $customOrder->count,
+                    // 'image_url' => $customization->image_url ?? null,
+                ];
+            });
+
+            $roomCustomizations = $order->roomcustomizationOrders->map(function ($roomCustomOrder) {
+                return [
+                    'room_customization_id' => $roomCustomOrder->id ?? null,
+                    'name' => $roomCustomOrder->roomCustomization->room->name ?? null,
+                    'price' => $roomCustomOrder->deposite_price ?? null,
+                    'count' => $roomCustomOrder->count,
+                    // 'image_url' => $customization->image_url ?? null,
                 ];
             });
 
@@ -81,6 +101,8 @@ class PurchaseOrderController extends Controller
                 'status' => $order->status,
                 'items' => $items,
                 'rooms' => $rooms,
+                'item_customizations' => $customizations,
+                'room_customizations' => $roomCustomizations,
             ];
         });
 
@@ -91,7 +113,9 @@ class PurchaseOrderController extends Controller
 
     public function getAllOrders()
     {
+        $customerId = auth()->user()->customer->id;
         $orders = PurchaseOrder::select('id', 'status', 'recive_date', 'price_after_rabbon', 'is_paid')
+            ->where('customer_id', $customerId)
             ->get()
             ->map(function ($order) {
                 $remainingTime = '00:00';
@@ -105,17 +129,13 @@ class PurchaseOrderController extends Controller
                         'syntax' => CarbonInterface::DIFF_RELATIVE_TO_NOW,
                     ]);
                 }
-
-
-
-
                 $remainingAmount = $order->price_after_rabbon;
 
                 return [
                     'id' => $order->id,
                     'status' => $order->status,
-                    'remaining_time' => $remainingTime,
-                    'remaining_bill' => number_format($remainingAmount, 2) . ' $',
+                    'remaining_time' =>(float) $remainingTime,
+                    'remaining_bill' => (float) $remainingAmount,
                     'is_paid' => $order->is_paid ? 'Paid in full' : 'Not paid in full',
                 ];
             });

@@ -5,6 +5,7 @@ use App\Http\Controllers\GallaryController;
 use App\Http\Controllers\GallaryManager\GallaryController as GallaryManagerGallaryController;
 use App\Http\Controllers\GallaryManager\ProfileController as GallaryManagerProfileController;
 use App\Http\Controllers\GallaryManager\SubManagerController;
+use App\Http\Controllers\SuperManager\BranchController;
 use App\Http\Controllers\SuperManager\OrderController;
 use App\Http\Controllers\User\CartController;
 use App\Http\Controllers\User\ComplaintController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\User\PurchaseOrderController;
 use App\Http\Controllers\User\RatingController;
 use App\Http\Controllers\User\RecommendationController;
 use App\Http\Controllers\User\RoomController;
+use App\Models\Branch;
 use App\Models\Customer;
 use App\Models\CustomizationOrder;
 use App\Models\Room;
@@ -226,6 +228,16 @@ Route::middleware('auth:sanctum')->group(function () {
 //superManager:
 // Route::post('/changeOrderStatus',[OrderController::class,'changeOrderStatus']);
 //super Manager:
+Route::middleware(['auth:sanctum', 'superManager'])->group(function () {
+    Route::get('/branches', [BranchController::class, 'getAllBranches']);
+    Route::get('/branch-managers', [BranchController::class, 'getBranchManagers']);
+    Route::get('/branch/{id}/manager', [BranchController::class, 'getBranchManagerDetails']);
+    //sotf
+    Route::delete('/gallary-managers/{id}', [BranchController::class, 'delete']);
+
+
+
+});
 
 Route::middleware(['auth:sanctum', 'gallaryManager'])->group(function () {
     Route::get('/gallary-manager-info', [GallaryManagerProfileController::class, 'getGallaryManagerInfo']);

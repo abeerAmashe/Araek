@@ -41,9 +41,7 @@ class Customer extends Model
                 'profile_image'
             );
     }
-
-
-
+    
     public function favorites()
     {
         return $this->hasMany(Favorite::class, 'customer_id');

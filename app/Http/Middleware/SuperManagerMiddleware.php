@@ -12,8 +12,7 @@ class SuperManagerMiddleware
     {
         $user = Auth::user();
 
-        // إذا عندك علاقة superManager في الـ User Model
-        if ($user && $user->superManager) {
+        if ($user && $user->galleryManager) {
             return $next($request);
         }
 

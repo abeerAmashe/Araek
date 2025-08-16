@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Branch;
 use App\Models\GallaryManager;
+use App\Models\SubManager;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class BranchFactory extends Factory
@@ -13,10 +14,10 @@ class BranchFactory extends Factory
     public function definition(): array
     {
         return [
-            'gallary_manager_id' => GallaryManager::factory(), // ينشئ مدير معرض تلقائيًا
+            'sub_manager_id' => SubManager::factory(),
             'address' => $this->faker->address,
-            'latitude' => $this->faker->latitude,
-            'longitude' => $this->faker->longitude,
+            'latitude' => $this->faker->latitude(24, 32),
+            'longitude' => $this->faker->longitude(34, 40),
         ];
     }
 }

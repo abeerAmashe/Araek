@@ -6,7 +6,12 @@ use App\Http\Controllers\GallaryManager\GallaryController as GallaryManagerGalla
 use App\Http\Controllers\GallaryManager\ProfileController as GallaryManagerProfileController;
 use App\Http\Controllers\GallaryManager\SubManagerController;
 use App\Http\Controllers\SuperManager\BranchController;
+use App\Http\Controllers\SuperManager\BranchManager;
+use App\Http\Controllers\SuperManager\BranchManagerController;
+use App\Http\Controllers\supermanager\ComplaintController as SupermanagerComplaintController;
+use App\Http\Controllers\supermanager\DiagramController;
 use App\Http\Controllers\SuperManager\OrderController;
+use App\Http\Controllers\SuperManager\UserController;
 use App\Http\Controllers\User\CartController;
 use App\Http\Controllers\User\ComplaintController;
 use App\Http\Controllers\User\CustomerController;
@@ -229,14 +234,54 @@ Route::middleware('auth:sanctum')->group(function () {
 // Route::post('/changeOrderStatus',[OrderController::class,'changeOrderStatus']);
 //super Manager:
 Route::middleware(['auth:sanctum', 'superManager'])->group(function () {
-    Route::get('/branches', [BranchController::class, 'getAllBranches']);
-    Route::get('/branch-managers', [BranchController::class, 'getBranchManagers']);
-    Route::get('/branch/{id}/manager', [BranchController::class, 'getBranchManagerDetails']);
-    //sotf
-    Route::delete('/gallary-managers/{id}', [BranchController::class, 'delete']);
+
+    //users:
+    Route::get('/getCustomerList', [UserController::class, 'getCustomers']);
+    Route::get('/getCustomersWithOrders/{orders}', [UserController::class, 'getCustomerOrders']);
+
+    //diagrams:
+    // Route::get('/getBranchCount', [DiagramController::class, 'getBranchCount']);
+    // Route::get('/getRoomCount', [DiagramController::class, 'getRoomCount']);
+    // Route::get('/getItemCount', [DiagramController::class, 'getItemCount']);
+    // Route::get('/getUserCount', [DiagramController::class, 'getUserCount']);
+    // Route::get('/getPurchaseOrderCount', [DiagramController::class, 'getPurchaseOrderCount']);
+    // Route::get('/getComplaintCount', [DiagramController::class, 'getComplaintCount']);
+    // Route::get('/calculateProfit', [DiagramController::class, 'calculateProfit']);
+
+    Route::get('/dashboard-stats', [DiagramController::class, 'getDashboardStats']);
 
 
+    Route::get('/sales-details', [DiagramController::class, 'sales_details']);
+    Route::get('/getOrdersStatusPercentages', [DiagramController::class, 'getOrdersStatusPercentages']);
+    Route::get('/available_count', [DiagramController::class, 'available_count']);
+    Route::get('/calculateMonthlyProfit', [DiagramController::class, 'calculateMonthlyProfit']);
 
+    //Branch:    
+    //Done
+    Route::get('/branch_info/{branchId}', [BranchController::class, 'getBranchDetails']);
+    //Done
+    Route::get('/branches', [BranchController::class, 'index']);
+    //Done
+    Route::get('/branches_with_managers', [BranchController::class, 'getBranchesWithManagers']);
+    //Done
+    Route::post('/add_branch', [BranchController::class, 'addNewBranch']);
+    //Done
+    Route::post('/branches/assign-manager', [BranchController::class, 'assignManagerToBranch']);
+    //BranchManager:
+    //Done
+    Route::post('/add_branch_manager', [BranchManagerController::class, 'store']);
+    //Done
+    Route::get('/get_branch_managers', [BranchManagerController::class, 'getBranchManagers']);
+    //Done
+    Route::get('/get_branchmanager_info/{managerId}', [BranchManagerController::class, 'getBranchManagerDetails']);
+    //Done
+    Route::delete('/delete_branchmanager/{id}', [BranchManagerController::class, 'delete']);
+    //Done
+    Route::post('/edit_branchManager_info/{id}', [BranchManagerController::class, 'update']);
+    //Complaint
+    //Done
+    Route::get('/get_all_complaint', [SupermanagerComplaintController::class, 'index']);
+    // Route::;
 });
 
 Route::middleware(['auth:sanctum', 'gallaryManager'])->group(function () {

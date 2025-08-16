@@ -13,7 +13,7 @@ class Branch extends Model
         'address',
         'latitude',
         'longitude',
-        'gallary_manager_id'
+        'sub_manager_id'
     ];
 
     public function room()

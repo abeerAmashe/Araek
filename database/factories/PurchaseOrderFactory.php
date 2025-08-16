@@ -2,10 +2,10 @@
 
 namespace Database\Factories;
 
-use App\Models\Branch;
-use App\Models\Customer;
-use App\Models\PurchaseOrder;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Models\PurchaseOrder;
+use App\Models\Customer;
+use App\Models\Branch;
 
 class PurchaseOrderFactory extends Factory
 {
@@ -13,26 +13,34 @@ class PurchaseOrderFactory extends Factory
 
     public function definition()
     {
-        $wantDelivery = $this->faker->randomElement(['yes', 'no']);
+        $statusOptions = ['pending', 'in_progress', 'complete', 'cancelled'];
+        $deliveryStatusOptions = ['pending', 'negotiation', 'confirmed'];
+        $wantDeliveryOptions = ['yes', 'no'];
+        $isPaidOptions = ['pending', 'partial', 'paid'];
+        $isRecivedOptions = ['pending', 'done'];
 
         return [
-            'customer_id' => Customer::factory(),
-            'status' => $this->faker->randomElement(['pending', 'in_progress', 'complete', 'cancelled']),
-            'delivery_status' => $this->faker->randomElement(['pending', 'negotiation', 'confirmed']),
-            'want_delivery' => $wantDelivery,
-            'is_paid' => $this->faker->randomElement(['pending', 'partial', 'paid']),
-            'is_recived' => $this->faker->randomElement(['pending', 'done']),
-            'total_price' => $this->faker->randomFloat(2, 100, 10000),
+            'customer_id' => Customer::inRandomOrder()->first()?->id ?? Customer::factory(),
+            'status' => $this->faker->randomElement($statusOptions),
+            'delivery_status' => $this->faker->randomElement($deliveryStatusOptions),
+            'want_delivery' => $this->faker->randomElement($wantDeliveryOptions),
+            'is_paid' => $this->faker->randomElement($isPaidOptions),
+            'is_recived' => $this->faker->randomElement($isRecivedOptions),
+            'total_price' => $this->faker->randomFloat(2, 50, 1000),
             'recive_date' => $this->faker->date(),
-            'latitude' => $this->faker->optional()->latitude(),
-            'longitude' => $this->faker->optional()->longitude(),
-            'delivery_time' => $wantDelivery === 'yes' ? $this->faker->dateTimeBetween('+1 day', '+7 days') : null,
+            'latitude' => $this->faker->latitude(),
+            'longitude' => $this->faker->longitude(),
+            'delivery_time' => $this->faker->dateTimeBetween('now', '+7 days'),
             'address' => $this->faker->address(),
-            'delivery_price' => $wantDelivery === 'yes' ? $this->faker->randomFloat(2, 10, 100) : 0,
-            'rabbon' => $this->faker->optional()->randomFloat(2, 5, 500),
-            'price_after_rabbon' => null,
-            'price_after_rabbon_with_delivery' => null, 
-            'branch_id' => Branch::factory(),
+            'delivery_price' => $this->faker->randomFloat(2, 0, 50),
+            'rabbon' => $this->faker->randomFloat(2, 0, 100),
+            'price_after_rabbon' => function (array $attributes) {
+                return $attributes['total_price'] - $attributes['rabbon'];
+            },
+            'price_after_rabbon_with_delivery' => function (array $attributes) {
+                return ($attributes['total_price'] - $attributes['rabbon']) + $attributes['delivery_price'];
+            },
+            'branch_id' => Branch::inRandomOrder()->first()?->id ?? Branch::factory(),
         ];
     }
 }

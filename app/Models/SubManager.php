@@ -11,7 +11,10 @@ class SubManager extends Model
 
     protected $fillable = [
         'user_id',
-        'id'
+        'id',
+        'photo',
+        'phone',
+
 
     ];
 

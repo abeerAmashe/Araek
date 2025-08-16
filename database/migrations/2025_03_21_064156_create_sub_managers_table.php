@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('sub_managers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('photo')->nullable();
+            $table->string('phone', 20)->nullable();
             $table->timestamps();
         });
     }

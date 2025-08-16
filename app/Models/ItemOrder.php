@@ -19,6 +19,8 @@ class ItemOrder extends Model
         'count_reserved',
         'status'
     ];
-
-    
+    public function item()
+    {
+        return $this->belongsTo(Item::class);
+    }
 }

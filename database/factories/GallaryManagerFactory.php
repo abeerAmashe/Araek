@@ -13,7 +13,8 @@ class GallaryManagerFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => User::factory(), // ينشئ مستخدم ويربطه بالمدير
+            'user_id' => User::factory(), 
+            
         ];
     }
 }

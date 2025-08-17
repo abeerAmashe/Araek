@@ -210,7 +210,6 @@ class DiagramController extends Controller
         $data = $purchaseOrders->flatMap(function ($purchaseOrder) {
             $saleDate = $purchaseOrder->created_at->format('Y-m-d H:i:s');
 
-            // العناصر
             $items = $purchaseOrder->itemOrders->map(function ($itemOrder) use ($purchaseOrder, $saleDate) {
                 return [
                     'id' => $purchaseOrder->id,
@@ -219,7 +218,7 @@ class DiagramController extends Controller
                     'unit_price' => $itemOrder->price,
                     'total_price' => $itemOrder->price * $itemOrder->count,
                     'sale_date' => $saleDate,
-                    'type' => 'item', // نوع العنصر
+                    'type' => 'item',
                 ];
             });
 
@@ -271,8 +270,6 @@ class DiagramController extends Controller
         return response()->json($data);
     }
 
-
-
     public function getOrdersStatusPercentages()
     {
         $total = PurchaseOrder::count();
@@ -300,7 +297,6 @@ class DiagramController extends Controller
             'data' => $percentages
         ]);
     }
-
 
     // public function calculateMonthlyProfit()
     // {
@@ -364,6 +360,190 @@ class DiagramController extends Controller
         return response()->json([
             'success' => true,
             'data' => $monthlyProfits
+        ]);
+    }
+
+    public function getTodaysNewData()
+    {
+        $today = Carbon::today();
+
+        // الطلبات الجديدة
+        $orders = PurchaseOrder::whereDate('created_at', $today)->with([
+            'customer.user',
+            'roomOrders.room',
+            'itemOrders.item',
+            'customizationOrders.customization',
+            'roomcustomizationOrders.roomCustomization'
+        ])->get();
+
+        $ordersResult = [];
+        foreach ($orders as $po) {
+            $customerName = $po->customer ? ($po->customer->user->name ?? $po->customer->name) : null;
+
+            foreach ($po->roomOrders as $ro) {
+                $ordersResult[] = [
+                    'customer_id' => $po->customer_id,
+                    'customer_name' => $customerName,
+                    'order_name' => $ro->room ? $ro->room->name : null,
+                    'type' => 'Room',
+                    'status' => $ro->status,
+                    'image' => $ro->room ? $ro->room->image_url : null,
+                ];
+            }
+
+            foreach ($po->itemOrders as $io) {
+                $ordersResult[] = [
+                    'customer_id' => $po->customer_id,
+                    'customer_name' => $customerName,
+                    'order_name' => $io->item ? $io->item->name : null,
+                    'type' => 'Item',
+                    'status' => $io->status,
+                    'image' => $io->item ? $io->item->image_url : null,
+                ];
+            }
+
+            foreach ($po->customizationOrders as $co) {
+                $ordersResult[] = [
+                    'customer_id' => $po->customer_id,
+                    'customer_name' => $customerName,
+                    'order_name' => $co->customization ? $co->customization->name : null,
+                    'type' => 'Customization',
+                    'status' => $co->status,
+                    'image' => $co->customization ? $co->customization->image_url : null,
+                ];
+            }
+
+            foreach ($po->roomcustomizationOrders as $rco) {
+                $ordersResult[] = [
+                    'customer_id' => $po->customer_id,
+                    'customer_name' => $customerName,
+                    'order_name' => $rco->roomCustomization ? $rco->roomCustomization->name : null,
+                    'type' => 'RoomCustomization',
+                    'status' => $rco->status,
+                    'image' => $rco->roomCustomization ? $rco->roomCustomization->image_url : null,
+                ];
+            }
+        }
+
+        // الغرف الجديدة
+        $rooms = Room::whereDate('created_at', $today)->get()->map(function ($room) {
+            return [
+                'room_id' => $room->id,
+                'name' => $room->name,
+                'category_id' => $room->category_id,
+                'image' => $room->image_url,
+                'price' => $room->price,
+            ];
+        });
+
+        // الشكاوي الجديدة
+        $complaints = Complaint::whereDate('created_at', $today)->with('customer.user')->get()->map(function ($c) {
+            return [
+                'complaint_id' => $c->id,
+                'customer_id' => $c->customer_id,
+                'customer_name' => $c->customer ? ($c->customer->user->name ?? $c->customer->name) : null,
+                'message' => $c->message,
+                'status' => $c->status,
+            ];
+        });
+
+        // الفروع الجديدة
+        $branches = Branch::whereDate('created_at', $today)->get()->map(function ($b) {
+            return [
+                'branch_id' => $b->id,
+                'address' => $b->address,
+                'latitude' => $b->latitude,
+                'longitude' => $b->longitude,
+                'sub_manager_id' => $b->sub_manager_id,
+            ];
+        });
+
+        // المستخدمين الجدد
+        $users = User::whereDate('created_at', $today)->get()->map(function ($u) {
+            return [
+                'user_id' => $u->id,
+                'name' => $u->name,
+                'email' => $u->email,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'orders' => $ordersResult,
+            'rooms' => $rooms,
+            'complaints' => $complaints,
+            'branches' => $branches,
+            'users' => $users
+        ]);
+    }
+
+
+    public function getInProgressOrders()
+    {
+        // جلب جميع الطلبات التي الحالة الخاصة بها in_progress
+        $orders = PurchaseOrder::where('status', 'in_progress')
+            ->with([
+                'customer.user',
+                'roomOrders.room',
+                'itemOrders.item',
+                'customizationOrders.customization',
+                'roomcustomizationOrders.roomCustomization'
+            ])
+            ->get();
+
+        $result = [];
+
+        foreach ($orders as $po) {
+            $customerName = $po->customer ? ($po->customer->user->name ?? $po->customer->name) : null;
+
+            foreach ($po->roomOrders as $ro) {
+                $result[] = [
+                    'customer_id' => $po->customer_id,
+                    'customer_name' => $customerName,
+                    'order_name' => $ro->room ? $ro->room->name : null,
+                    'type' => 'Room',
+                    'status' => $ro->status,
+                    'image' => $ro->room ? $ro->room->image_url : null,
+                ];
+            }
+
+            foreach ($po->itemOrders as $io) {
+                $result[] = [
+                    'customer_id' => $po->customer_id,
+                    'customer_name' => $customerName,
+                    'order_name' => $io->item ? $io->item->name : null,
+                    'type' => 'Item',
+                    'status' => $io->status,
+                    'image' => $io->item ? $io->item->image_url : null,
+                ];
+            }
+
+            foreach ($po->customizationOrders as $co) {
+                $result[] = [
+                    'customer_id' => $po->customer_id,
+                    'customer_name' => $customerName,
+                    'order_name' => $co->customization ? $co->customization->name : null,
+                    'type' => 'Customization',
+                    'status' => $co->status,
+                    'image' => $co->customization ? $co->customization->image_url : null,
+                ];
+            }
+
+            foreach ($po->roomcustomizationOrders as $rco) {
+                $result[] = [
+                    'customer_id' => $po->customer_id,
+                    'customer_name' => $customerName,
+                    'order_name' => $rco->roomCustomization ? $rco->roomCustomization->name : null,
+                    'type' => 'RoomCustomization',
+                    'status' => $rco->status,
+                    'image' => $rco->roomCustomization ? $rco->roomCustomization->image_url : null,
+                ];
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'orders' => $result
         ]);
     }
 }

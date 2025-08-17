@@ -143,4 +143,15 @@ class BranchController extends Controller
             'branch'  => $branch,
         ]);
     }
+
+    public function delete($branch_id)
+    {
+        $branch = Branch::findOrFail($branch_id);
+        if ($branch) {
+            $branch->delete();
+        }
+        return response()->json([
+            'message'=>'deleted ^_^'
+        ]);
+    }
 }

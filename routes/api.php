@@ -58,7 +58,6 @@ Route::middleware('auth:sanctum')->group(function () {
 //PurchaseOrderController
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/getOrdersByCustomer', [PurchaseOrderController::class, 'getOrdersByCustomer']);
-    Route::get('/GetAllOrders', [PurchaseOrderController::class, 'getAllOrders']);
     Route::get('/orders_details/{orderId}', [PurchaseOrderController::class, 'getOrderDetails']);
     Route::post('/orders_cancel/{orderId}', [PurchaseOrderController::class, 'cancelOrder']);
 });
@@ -131,7 +130,7 @@ Route::get('/showFerniture', [RoomController::class, 'showFurniture']);
 //.
 //.
 //.
-Route::get('/getFeedbackAndRatings', [RatingController::class, 'getFeedbackAndRatings']);
+// Route::get('/getFeedbackAndRatings', [RatingController::class, 'getFeedbackAndRatings']);
 
 Route::get('filterItemsWithType', [CustomerController::class, 'filterItemsWithType']);
 
@@ -154,7 +153,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/Recommend', [RecommendationController::class, 'recommend']);
     //.
     Route::get('/showProfile', [ProfileController::class, 'showProfile']);
-    //.
+    //Ali not
     Route::post('/updateProfile', [ProfileController::class, 'updateProfile']);
     //.
     Route::delete('/deleteProfile', [ProfileController::class, 'deleteProfile']);
@@ -175,9 +174,9 @@ Route::middleware('auth:sanctum')->group(function () {
     //price
 
     //.
-    //.
+    //Ali not
     Route::post('/like_toggle', [FavoriteController::class, 'toggleLike']);
-    //.
+    //Ali not
     Route::get('/customer_likes', [FavoriteController::class, 'getCustomerLikes']);
     //.
     Route::post('/complaints_submit', [ComplaintController::class, 'submitComplaint']);
@@ -200,7 +199,7 @@ Route::middleware('auth:sanctum')->group(function () {
 //.
 Route::get('/trending', [RecommendationController::class, 'getTrending']);
 
-//.
+//Ali not
 Route::get('/exchange-rate/{from}/{to}', [HelperController::class, 'getExchangeRate']);
 
 
@@ -231,6 +230,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 //superManager:
+Route::get('/GetAllOrders', [PurchaseOrderController::class, 'getAllOrders']);
+
 // Route::post('/changeOrderStatus',[OrderController::class,'changeOrderStatus']);
 //super Manager:
 Route::middleware(['auth:sanctum', 'superManager'])->group(function () {
@@ -240,6 +241,14 @@ Route::middleware(['auth:sanctum', 'superManager'])->group(function () {
     Route::get('/getCustomersWithOrders/{orders}', [UserController::class, 'getCustomerOrders']);
 
     //diagrams:
+    Route::get('/available_count', [DiagramController::class, 'available_count']);
+    Route::get('/sales-details', [DiagramController::class, 'sales_details']);
+    Route::get('/get_current_order',[DiagramController::class,'getInProgressOrders']);
+
+
+
+
+
     // Route::get('/getBranchCount', [DiagramController::class, 'getBranchCount']);
     // Route::get('/getRoomCount', [DiagramController::class, 'getRoomCount']);
     // Route::get('/getItemCount', [DiagramController::class, 'getItemCount']);
@@ -251,37 +260,41 @@ Route::middleware(['auth:sanctum', 'superManager'])->group(function () {
     Route::get('/dashboard-stats', [DiagramController::class, 'getDashboardStats']);
 
 
-    Route::get('/sales-details', [DiagramController::class, 'sales_details']);
     Route::get('/getOrdersStatusPercentages', [DiagramController::class, 'getOrdersStatusPercentages']);
-    Route::get('/available_count', [DiagramController::class, 'available_count']);
     Route::get('/calculateMonthlyProfit', [DiagramController::class, 'calculateMonthlyProfit']);
+    Route::get('/getTodaysNewData', [DiagramController::class, 'getTodaysNewData']);
 
     //Branch:    
-    //Done
-    Route::get('/branch_info/{branchId}', [BranchController::class, 'getBranchDetails']);
-    //Done
-    Route::get('/branches', [BranchController::class, 'index']);
-    //Done
-    Route::get('/branches_with_managers', [BranchController::class, 'getBranchesWithManagers']);
-    //Done
-    Route::post('/add_branch', [BranchController::class, 'addNewBranch']);
-    //Done
+
     Route::post('/branches/assign-manager', [BranchController::class, 'assignManagerToBranch']);
+
+    Route::get('/branch_info/{branchId}', [BranchController::class, 'getBranchDetails']);
+    //not
+    Route::get('/branches', [BranchController::class, 'index']);
+
+    Route::get('/branches_with_managers', [BranchController::class, 'getBranchesWithManagers']);
+
+    Route::post('/add_branch', [BranchController::class, 'addNewBranch']);
+    //not
+    Route::delete('/deleteBranch/{branch_id}', [BranchController::class, 'delete']);
+
+
     //BranchManager:
-    //Done
+
     Route::post('/add_branch_manager', [BranchManagerController::class, 'store']);
-    //Done
+
     Route::get('/get_branch_managers', [BranchManagerController::class, 'getBranchManagers']);
-    //Done
-    Route::get('/get_branchmanager_info/{managerId}', [BranchManagerController::class, 'getBranchManagerDetails']);
-    //Done
+
     Route::delete('/delete_branchmanager/{id}', [BranchManagerController::class, 'delete']);
-    //Done
+
     Route::post('/edit_branchManager_info/{id}', [BranchManagerController::class, 'update']);
+
+    Route::get('/get_branchmanager_info/{managerId}', [BranchManagerController::class, 'getBranchManagerDetails']);
+
+
     //Complaint
-    //Done
+
     Route::get('/get_all_complaint', [SupermanagerComplaintController::class, 'index']);
-    // Route::;
 });
 
 Route::middleware(['auth:sanctum', 'gallaryManager'])->group(function () {

@@ -5,12 +5,19 @@ use App\Http\Controllers\GallaryController;
 use App\Http\Controllers\GallaryManager\GallaryController as GallaryManagerGallaryController;
 use App\Http\Controllers\GallaryManager\ProfileController as GallaryManagerProfileController;
 use App\Http\Controllers\GallaryManager\SubManagerController;
+use App\Http\Controllers\subManagerController\DiagramController as SubManagerControllerDiagramController;
+use App\Http\Controllers\subManagerController\ProductController as SubManagerControllerProductController;
+use App\Http\Controllers\subManagerController\PurchaseOrderController as SubManagerControllerPurchaseOrderController;
+use App\Http\Controllers\subManagerController\SubmanagerProfileController;
+use App\Http\Controllers\subManagerController\UserController as SubManagerControllerUserController;
 use App\Http\Controllers\SuperManager\BranchController;
 use App\Http\Controllers\SuperManager\BranchManager;
 use App\Http\Controllers\SuperManager\BranchManagerController;
 use App\Http\Controllers\supermanager\ComplaintController as SupermanagerComplaintController;
 use App\Http\Controllers\supermanager\DiagramController;
 use App\Http\Controllers\SuperManager\OrderController;
+use App\Http\Controllers\SuperManager\ProductController;
+use App\Http\Controllers\supermanager\ProfileController as SupermanagerProfileController;
 use App\Http\Controllers\SuperManager\UserController;
 use App\Http\Controllers\User\CartController;
 use App\Http\Controllers\User\ComplaintController;
@@ -38,10 +45,6 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
 
 // User Controllers
-
-
-
-
 //cartController:
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/addtocart2', [CartController::class, 'addToCart2']);
@@ -105,7 +108,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 //AR
-Route::post('/uploadGlb/{id}', [ItemController::class, 'uploadGlb']);
 
 Route::get('/getGlbItem/{id}', [ItemController::class, 'getGlbItem']);
 
@@ -230,25 +232,37 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 //superManager:
-Route::get('/GetAllOrders', [PurchaseOrderController::class, 'getAllOrders']);
+
 
 // Route::post('/changeOrderStatus',[OrderController::class,'changeOrderStatus']);
 //super Manager:
 Route::middleware(['auth:sanctum', 'superManager'])->group(function () {
-
+    Route::get('/getAllRooms', [ProductController::class, 'getAllRooms']);
+    Route::get('/getAllItems', [ProductController::class, 'getAllItems']);
+    Route::post('/updateItem/{itemId}', [ProductController::class, 'updateItem']);
+    Route::delete('/deleteItem/{itemId}', [ProductController::class, 'deleteItem']);
+    Route::post('/updateRoom/{roomId}', [ProductController::class, 'updateRoom']);
+    Route::post('/updateFabricPrice/{fabricTypeId}', [ProductController::class, 'updateFabricPrice']);
+    Route::post('/updateWoodPrice/{woodTypeId}', [ProductController::class, 'updateWoodPrice']);
+    //not description
+    Route::post('/storeItemType', [ProductController::class, 'storeItemType']);
+    Route::post('/storeCategory', [ProductController::class, 'storeCategory']);
+    Route::post('/storeItem', [ProductController::class, 'storeItem']);
+    Route::post('/storeRoom', [ProductController::class, 'storeRoom']);
+    Route::post('/storeOptions/{roomId}', [ProductController::class, 'storeOptions']);
+    Route::post('/storeWood', [ProductController::class, 'storeWood']);
+    Route::post('/storeFabric', [ProductController::class, 'storeFabric']);
+    Route::get('/GetAllOrders', [PurchaseOrderController::class, 'getAllOrders']);
+    Route::post('/uploadGlb/{id}', [ItemController::class, 'uploadGlb']);
+    //profile:
+    Route::post('/super-manager/logout', [SupermanagerProfileController::class, 'logoutGalleryManager']);
     //users:
     Route::get('/getCustomerList', [UserController::class, 'getCustomers']);
     Route::get('/getCustomersWithOrders/{orders}', [UserController::class, 'getCustomerOrders']);
-
     //diagrams:
     Route::get('/available_count', [DiagramController::class, 'available_count']);
     Route::get('/sales-details', [DiagramController::class, 'sales_details']);
-    Route::get('/get_current_order',[DiagramController::class,'getInProgressOrders']);
-
-
-
-
-
+    Route::get('/get_current_order', [DiagramController::class, 'getInProgressOrders']);
     // Route::get('/getBranchCount', [DiagramController::class, 'getBranchCount']);
     // Route::get('/getRoomCount', [DiagramController::class, 'getRoomCount']);
     // Route::get('/getItemCount', [DiagramController::class, 'getItemCount']);
@@ -256,49 +270,45 @@ Route::middleware(['auth:sanctum', 'superManager'])->group(function () {
     // Route::get('/getPurchaseOrderCount', [DiagramController::class, 'getPurchaseOrderCount']);
     // Route::get('/getComplaintCount', [DiagramController::class, 'getComplaintCount']);
     // Route::get('/calculateProfit', [DiagramController::class, 'calculateProfit']);
-
     Route::get('/dashboard-stats', [DiagramController::class, 'getDashboardStats']);
-
-
     Route::get('/getOrdersStatusPercentages', [DiagramController::class, 'getOrdersStatusPercentages']);
     Route::get('/calculateMonthlyProfit', [DiagramController::class, 'calculateMonthlyProfit']);
     Route::get('/getTodaysNewData', [DiagramController::class, 'getTodaysNewData']);
-
     //Branch:    
-
     Route::post('/branches/assign-manager', [BranchController::class, 'assignManagerToBranch']);
-
     Route::get('/branch_info/{branchId}', [BranchController::class, 'getBranchDetails']);
     //not
     Route::get('/branches', [BranchController::class, 'index']);
-
     Route::get('/branches_with_managers', [BranchController::class, 'getBranchesWithManagers']);
-
     Route::post('/add_branch', [BranchController::class, 'addNewBranch']);
     //not
     Route::delete('/deleteBranch/{branch_id}', [BranchController::class, 'delete']);
-
-
     //BranchManager:
-
     Route::post('/add_branch_manager', [BranchManagerController::class, 'store']);
-
     Route::get('/get_branch_managers', [BranchManagerController::class, 'getBranchManagers']);
-
     Route::delete('/delete_branchmanager/{id}', [BranchManagerController::class, 'delete']);
-
     Route::post('/edit_branchManager_info/{id}', [BranchManagerController::class, 'update']);
-
     Route::get('/get_branchmanager_info/{managerId}', [BranchManagerController::class, 'getBranchManagerDetails']);
-
-
     //Complaint
-
     Route::get('/get_all_complaint', [SupermanagerComplaintController::class, 'index']);
 });
 
-Route::middleware(['auth:sanctum', 'gallaryManager'])->group(function () {
-    Route::get('/gallary-manager-info', [GallaryManagerProfileController::class, 'getGallaryManagerInfo']);
+// Route::middleware(['auth:sanctum', 'gallaryManager'])->group(function () {
+//     Route::get('/gallary-manager-info', [GallaryManagerProfileController::class, 'getGallaryManagerInfo']);
 
-    Route::get('/sub-manager/{id}', [SubManagerController::class, 'show']);
+//     Route::get('/sub-manager/{id}', [SubManagerController::class, 'show']);
+// });
+
+Route::middleware(['auth', 'subManager'])->group(function () {
+    Route::get('/getAllRooms', [SubManagerControllerProductController::class, 'getAllRooms']);
+    Route::get('/getAllItems', [SubManagerControllerProductController::class, 'getAllItems']);
+    Route::get('/GetAllOrders', [SubManagerControllerPurchaseOrderController::class, 'getAllOrders']);
+    //profile:
+    Route::post('/sub-manager/logout', [SubmanagerProfileController::class, 'logoutSubManager']);
+    Route::get('/getCustomerList', [SubManagerControllerUserController::class, 'getCustomers']);
+    Route::get('/getCustomersWithOrders/{orders}', [SubManagerControllerUserController::class, 'getCustomerOrders']);
+    Route::get('/available_count', [SubManagerControllerDiagramController::class, 'available_count']);
+    Route::get('/get_current_order', [SubManagerControllerDiagramController::class, 'getInProgressOrders']);
+    Route::get('/getOrdersStatusPercentages', [SubManagerControllerDiagramController::class, 'getOrdersStatusPercentages']);
+    Route::get('/getTodaysNewData', [SubManagerControllerDiagramController::class, 'getTodaysNewData']);
 });

@@ -367,7 +367,6 @@ class DiagramController extends Controller
     {
         $today = Carbon::today();
 
-        // الطلبات الجديدة
         $orders = PurchaseOrder::whereDate('created_at', $today)->with([
             'customer.user',
             'roomOrders.room',
@@ -480,7 +479,6 @@ class DiagramController extends Controller
 
     public function getInProgressOrders()
     {
-        // جلب جميع الطلبات التي الحالة الخاصة بها in_progress
         $orders = PurchaseOrder::where('status', 'in_progress')
             ->with([
                 'customer.user',

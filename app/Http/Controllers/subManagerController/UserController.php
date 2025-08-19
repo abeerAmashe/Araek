@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\SuperManager;
+namespace App\Http\Controllers\subManagerController;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
@@ -21,13 +21,11 @@ class UserController extends Controller
                 'profile_image' => $customer->profile_image,
             ];
         });
-
         return response()->json([
             'success' => true,
             'customers' => $data
         ], 200);
     }
-
     public function getCustomerOrders($customer_id)
     {
         $customer = Customer::with([

@@ -70,8 +70,8 @@ class Room extends Model
         return $this->belongsTo(Category::class);
     }
 
-    public function roomDetail()
+    public function roomDetails()
     {
-        return $this->hasOne(RoomDetail::class);
+        return $this->hasMany(RoomDetail::class);
     }
 }

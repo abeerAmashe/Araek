@@ -73,6 +73,8 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'gallaryManager' => \App\Http\Middleware\GallaryManagerMiddleware::class,
         'superManager' => \App\Http\Middleware\SuperManagerMiddleware::class,
+        'subManager' => \App\Http\Middleware\SubManagerMiddleware::class,
+
 
 
     ];

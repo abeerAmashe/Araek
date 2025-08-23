@@ -4,22 +4,19 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
-class SubManagerMiddleware
+class DeliveryManagerMiddleware
 {
     /**
      * Handle an incoming request.
      */
     public function handle(Request $request, Closure $next): Response
     {
-         $user = Auth::user();
-
-        if ($user && $user->subManager) {
+        if (auth()->check() && auth()->user()->deliveryManager) {
             return $next($request);
         }
 
-        return response()->json(['error' => 'Unauthorized - Not a sub Manager'], 403);
-   }
+        return response()->json(['message' => 'Unauthorized - DeliveryManager only'], 403);
+    }
 }

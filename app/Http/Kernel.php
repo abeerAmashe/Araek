@@ -74,7 +74,8 @@ class Kernel extends HttpKernel
         'gallaryManager' => \App\Http\Middleware\GallaryManagerMiddleware::class,
         'superManager' => \App\Http\Middleware\SuperManagerMiddleware::class,
         'subManager' => \App\Http\Middleware\SubManagerMiddleware::class,
-
+        'deliveryManager' => \App\Http\Middleware\DeliveryManagerMiddleware::class,
+        'workshop.manager' => \App\Http\Middleware\IsWorkshopManager::class,
 
 
     ];

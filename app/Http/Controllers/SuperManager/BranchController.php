@@ -42,38 +42,6 @@ class BranchController extends Controller
         ]);
     }
 
-
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
-            'phone'    => 'nullable|string|max:20',
-            'address'  => 'nullable|string|max:255',
-            'password' => 'required|string|min:6',
-            'photo'    => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-        ]);
-
-        $user = User::create([
-            'name'     => $validated['name'],
-            'email'    => $validated['email'],
-            'password' => Hash::make($validated['password']),
-        ]);
-
-        $photoPath = null;
-        if ($request->hasFile('photo')) {
-            $photoPath = $request->file('photo')->store('sub_managers', 'public');
-        }
-
-        SubManager::create([
-            'user_id' => $user->id,
-            'photo'   => $photoPath,
-            'phone'   => $validated['phone'] ?? null,
-            'address' => $validated['address'] ?? null,
-        ]);
-
-        return response('Done', 200);
-    }
     public function index()
     {
         $branches = Branch::all();
@@ -151,7 +119,7 @@ class BranchController extends Controller
             $branch->delete();
         }
         return response()->json([
-            'message'=>'deleted ^_^'
+            'message' => 'deleted ^_^'
         ]);
     }
 }

@@ -52,7 +52,7 @@ class User extends Authenticatable
         return $this->hasOne(Customer::class);
     }
 
-    public function subMamager()
+    public function subManager()
     {
         return $this->hasOne(SubManager::class);
     }

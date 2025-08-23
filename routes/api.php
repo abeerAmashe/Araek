@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\deliverymanager\OrderController as DeliverymanagerOrderController;
+use App\Http\Controllers\deliverymanager\PlaceCostController;
 use App\Http\Controllers\GallaryController;
 use App\Http\Controllers\GallaryManager\GallaryController as GallaryManagerGallaryController;
 use App\Http\Controllers\GallaryManager\ProfileController as GallaryManagerProfileController;
@@ -18,6 +20,7 @@ use App\Http\Controllers\supermanager\DiagramController;
 use App\Http\Controllers\SuperManager\OrderController;
 use App\Http\Controllers\SuperManager\ProductController;
 use App\Http\Controllers\supermanager\ProfileController as SupermanagerProfileController;
+use App\Http\Controllers\supermanager\PurchaseOrderController as SupermanagerPurchaseOrderController;
 use App\Http\Controllers\SuperManager\UserController;
 use App\Http\Controllers\User\CartController;
 use App\Http\Controllers\User\ComplaintController;
@@ -227,14 +230,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/wallet_balance', [CustomerController::class, 'getUserBalance']);
 });
 
-
-
-
-
-//superManager:
-
-
-// Route::post('/changeOrderStatus',[OrderController::class,'changeOrderStatus']);
 //super Manager:
 Route::middleware(['auth:sanctum', 'superManager'])->group(function () {
     Route::get('/getAllRooms', [ProductController::class, 'getAllRooms']);
@@ -244,7 +239,6 @@ Route::middleware(['auth:sanctum', 'superManager'])->group(function () {
     Route::post('/updateRoom/{roomId}', [ProductController::class, 'updateRoom']);
     Route::post('/updateFabricPrice/{fabricTypeId}', [ProductController::class, 'updateFabricPrice']);
     Route::post('/updateWoodPrice/{woodTypeId}', [ProductController::class, 'updateWoodPrice']);
-    //not description
     Route::post('/storeItemType', [ProductController::class, 'storeItemType']);
     Route::post('/storeCategory', [ProductController::class, 'storeCategory']);
     Route::post('/storeItem', [ProductController::class, 'storeItem']);
@@ -252,10 +246,12 @@ Route::middleware(['auth:sanctum', 'superManager'])->group(function () {
     Route::post('/storeOptions/{roomId}', [ProductController::class, 'storeOptions']);
     Route::post('/storeWood', [ProductController::class, 'storeWood']);
     Route::post('/storeFabric', [ProductController::class, 'storeFabric']);
-    Route::get('/GetAllOrders', [PurchaseOrderController::class, 'getAllOrders']);
+    Route::get('/GetAllOrders', [SupermanagerPurchaseOrderController::class, 'getAllOrders']);
     Route::post('/uploadGlb/{id}', [ItemController::class, 'uploadGlb']);
     //profile:
     Route::post('/super-manager/logout', [SupermanagerProfileController::class, 'logoutGalleryManager']);
+    //gall
+    Route::get('/gallary-manager-info', [SupermanagerProfileController::class, 'getGallaryManagerInfo']);
     //users:
     Route::get('/getCustomerList', [UserController::class, 'getCustomers']);
     Route::get('/getCustomersWithOrders/{orders}', [UserController::class, 'getCustomerOrders']);
@@ -277,11 +273,11 @@ Route::middleware(['auth:sanctum', 'superManager'])->group(function () {
     //Branch:    
     Route::post('/branches/assign-manager', [BranchController::class, 'assignManagerToBranch']);
     Route::get('/branch_info/{branchId}', [BranchController::class, 'getBranchDetails']);
-    //not
+    //not UI
     Route::get('/branches', [BranchController::class, 'index']);
     Route::get('/branches_with_managers', [BranchController::class, 'getBranchesWithManagers']);
     Route::post('/add_branch', [BranchController::class, 'addNewBranch']);
-    //not
+    //not UI
     Route::delete('/deleteBranch/{branch_id}', [BranchController::class, 'delete']);
     //BranchManager:
     Route::post('/add_branch_manager', [BranchManagerController::class, 'store']);
@@ -293,15 +289,11 @@ Route::middleware(['auth:sanctum', 'superManager'])->group(function () {
     Route::get('/get_all_complaint', [SupermanagerComplaintController::class, 'index']);
 });
 
-// Route::middleware(['auth:sanctum', 'gallaryManager'])->group(function () {
-//     Route::get('/gallary-manager-info', [GallaryManagerProfileController::class, 'getGallaryManagerInfo']);
-
-//     Route::get('/sub-manager/{id}', [SubManagerController::class, 'show']);
-// });
-
-Route::middleware(['auth', 'subManager'])->group(function () {
+//submanager:
+Route::middleware(['auth:sanctum', 'subManager'])->group(function () {
     Route::get('/getAllRooms', [SubManagerControllerProductController::class, 'getAllRooms']);
     Route::get('/getAllItems', [SubManagerControllerProductController::class, 'getAllItems']);
+    //not
     Route::get('/GetAllOrders', [SubManagerControllerPurchaseOrderController::class, 'getAllOrders']);
     //profile:
     Route::post('/sub-manager/logout', [SubmanagerProfileController::class, 'logoutSubManager']);
@@ -312,3 +304,16 @@ Route::middleware(['auth', 'subManager'])->group(function () {
     Route::get('/getOrdersStatusPercentages', [SubManagerControllerDiagramController::class, 'getOrdersStatusPercentages']);
     Route::get('/getTodaysNewData', [SubManagerControllerDiagramController::class, 'getTodaysNewData']);
 });
+
+//deliveryManager:
+Route::middleware(['auth:sanctum', 'deliveryManager'])->group(function () {
+    //placecost
+    Route::post('/place_cost', [PlaceCostController::class, 'store']);
+    Route::put('/update_place_cost/{place}', [PlaceCostController::class, 'update']);
+    //order
+    Route::get('/delivery-orders', [DeliverymanagerOrderController::class, 'getDeliveryOrders']);
+    Route::put('/delivery-orders/{orderId}', [DeliverymanagerOrderController::class, 'updateDeliveryStatus']);
+    Route::get('/order-schedules', [DeliverymanagerOrderController::class, 'getOrderSchedules']);
+});
+
+Route::middleware(['auth:sanctum', 'workshop.manager'])->group(function () {});

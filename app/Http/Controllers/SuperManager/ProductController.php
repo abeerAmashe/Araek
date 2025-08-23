@@ -402,7 +402,7 @@ class ProductController extends Controller
     {
         $validated = $request->validate([
             'name'        => 'required|string|max:255|unique:item_types,name',
-            '   ' => 'nullable|string',
+            'description' => 'nullable|string',
         ]);
 
         $itemType = ItemType::create($validated);

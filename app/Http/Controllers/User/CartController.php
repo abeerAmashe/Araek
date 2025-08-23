@@ -819,9 +819,6 @@ class CartController extends Controller
         ]);
     }
 
-    
-
-
     protected function findAvailableDeliveryTime()
     {
         $user = auth()->user();
@@ -955,6 +952,54 @@ class CartController extends Controller
             'delivery_price' => round($deliveryPrice, 2),
             'total_price_with_delivery' => round($totalWithDelivery, 2),
             'price_after_deposit_and_delivery' => round($priceAfterDepositAndDelivery, 2)
+        ]);
+    }
+
+    public function payRemainingAmount($orderId)
+    {
+        $user = auth()->user();
+        $order = PurchaseOrder::find($orderId);
+
+        if (!$order) {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
+
+        if ($order->is_paid === 'done') {
+            return response()->json(['message' => 'Order already fully paid'], 200);
+        }
+
+        $remainingAmount = $order->want_delivery === 'yes'
+            ? $order->price_after_rabbon_with_delivery
+            : $order->price_after_rabbon;
+
+        $wallet = $user->wallets()->where('is_active', 1)->where('wallet_type', 'investment')->first();
+        if (!$wallet) {
+            return response()->json(['message' => 'No active wallet found'], 400);
+        }
+
+        if ($wallet->balance < $remainingAmount) {
+            return response()->json(['message' => 'Insufficient balance to pay remaining amount'], 200);
+        }
+
+        $wallet->balance -= $remainingAmount;
+        $wallet->save();
+
+        $manager = GallaryManager::with('user.wallets')->first();
+        if (!$manager || !$manager->user || !$manager->user->wallets->first()) {
+            return response()->json(['message' => 'Manager wallet not found'], 500);
+        }
+
+        $managerWallet = $manager->user->wallets->first();
+        $managerWallet->balance += $remainingAmount;
+        $managerWallet->save();
+
+        $order->update([
+            'is_paid' => 'done'
+        ]);
+
+        return response()->json([
+            'message' => 'Remaining amount paid successfully!',
+            'order'   => $order
         ]);
     }
 }

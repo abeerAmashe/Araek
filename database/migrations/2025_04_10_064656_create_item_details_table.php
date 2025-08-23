@@ -18,7 +18,7 @@ class CreateItemDetailsTable extends Migration
             $table->float('wood_height')->nullable();
             $table->float('fabric_length')->nullable();
             $table->float('fabric_width')->nullable();
-            $table->string('fabric_dimension')->nullable();
+            $table->float('fabric_dimension')->nullable();
             $table->float('wood_area_m2')->default(0);
 
             $table->timestamps();

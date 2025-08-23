@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\subManagerController;
+namespace App\Http\Controllers\supermanager;
 
 use App\Http\Controllers\Controller;
 use App\Models\PurchaseOrder;
@@ -12,7 +12,9 @@ class PurchaseOrderController extends Controller
 {
     public function getAllOrders()
     {
+        $customerId = auth()->user()->customer->id;
         $orders = PurchaseOrder::select('id', 'status', 'recive_date', 'price_after_rabbon', 'is_paid')
+            ->where('customer_id', $customerId)
             ->get()
             ->map(function ($order) {
                 $remainingTime = '00:00';

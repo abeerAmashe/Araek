@@ -135,7 +135,9 @@ class DiagramController extends Controller
 
     public function getTodaysNewData()
     {
-        $today = Carbon::today();
+        $today = Carbon::today('Asia/Damascus')->setTimezone('Asia/Damascus');
+        return $today;
+
 
         $orders = PurchaseOrder::whereDate('created_at', $today)->with([
             'customer.user',

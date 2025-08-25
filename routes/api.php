@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DeliveryManager\AvailabilityController;
 use App\Http\Controllers\deliverymanager\OrderController as DeliverymanagerOrderController;
 use App\Http\Controllers\deliverymanager\PlaceCostController;
 use App\Http\Controllers\GallaryController;
@@ -291,18 +292,20 @@ Route::middleware(['auth:sanctum', 'superManager'])->group(function () {
 
 //submanager:
 Route::middleware(['auth:sanctum', 'subManager'])->group(function () {
-    Route::get('/getAllRooms', [SubManagerControllerProductController::class, 'getAllRooms']);
-    Route::get('/getAllItems', [SubManagerControllerProductController::class, 'getAllItems']);
+    Route::get('/getAllRooms2', [SubManagerControllerProductController::class, 'getAllRooms']);
+    Route::get('/getAllItems2', [SubManagerControllerProductController::class, 'getAllItems']);
     //not
-    Route::get('/GetAllOrders', [SubManagerControllerPurchaseOrderController::class, 'getAllOrders']);
+    Route::get('/GetLastOrders', [SubManagerControllerPurchaseOrderController::class, 'getAllOrders']);
     //profile:
     Route::post('/sub-manager/logout', [SubmanagerProfileController::class, 'logoutSubManager']);
-    Route::get('/getCustomerList', [SubManagerControllerUserController::class, 'getCustomers']);
-    Route::get('/getCustomersWithOrders/{orders}', [SubManagerControllerUserController::class, 'getCustomerOrders']);
-    Route::get('/available_count', [SubManagerControllerDiagramController::class, 'available_count']);
-    Route::get('/get_current_order', [SubManagerControllerDiagramController::class, 'getInProgressOrders']);
-    Route::get('/getOrdersStatusPercentages', [SubManagerControllerDiagramController::class, 'getOrdersStatusPercentages']);
-    Route::get('/getTodaysNewData', [SubManagerControllerDiagramController::class, 'getTodaysNewData']);
+    Route::get('/getCustomerList2', [SubManagerControllerUserController::class, 'getCustomers']);
+    Route::get('/getCustomersWithOrders2/{orderscustomer_id}', [SubManagerControllerUserController::class, 'getCustomerOrders']);
+    Route::get('/available_count2', [SubManagerControllerDiagramController::class, 'available_count']);
+    //dont
+    Route::get('/get_current_order2', [SubManagerControllerDiagramController::class, 'getInProgressOrders']);
+    Route::get('/getOrdersStatusPercentages2', [SubManagerControllerDiagramController::class, 'getOrdersStatusPercentages']);
+    // Dont
+    Route::get('/getTodaysNewData2', [SubManagerControllerDiagramController::class, 'getTodaysNewData']);
 });
 
 //deliveryManager:
@@ -311,9 +314,12 @@ Route::middleware(['auth:sanctum', 'deliveryManager'])->group(function () {
     Route::post('/place_cost', [PlaceCostController::class, 'store']);
     Route::put('/update_place_cost/{place}', [PlaceCostController::class, 'update']);
     //order
-    Route::get('/delivery-orders', [DeliverymanagerOrderController::class, 'getDeliveryOrders']);
+    Route::get('/delivery_orders', [DeliverymanagerOrderController::class, 'getDeliveryOrders']);
     Route::put('/delivery-orders/{orderId}', [DeliverymanagerOrderController::class, 'updateDeliveryStatus']);
     Route::get('/order-schedules', [DeliverymanagerOrderController::class, 'getOrderSchedules']);
+    //available time
+    Route::post('/addAvailableTime', [AvailabilityController::class, 'store']);
+    Route::post('/updateAvailablityTime', [AvailabilityController::class, 'update']);
 });
 
 Route::middleware(['auth:sanctum', 'workshop.manager'])->group(function () {});

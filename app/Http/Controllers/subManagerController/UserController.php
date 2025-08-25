@@ -72,21 +72,21 @@ class UserController extends Controller
                 ];
             }
 
-            foreach ($po->roomcustomizationOrders as $rco) {
-                $orders[] = [
-                    'name' => $rco->roomCustomization ? $rco->roomCustomization->name : null,
-                    'type' => 'RoomCustomization',
-                    'status' => $rco->status,
-                    'image' => $rco->roomCustomization ? $rco->roomCustomization->image_url : null,
-                ];
-            }
+            // foreach ($po->roomcustomizationOrders as $rco) {
+            //     $orders[] = [
+            //         'name' => $rco->roomCustomization ? $rco->roomCustomization->name : null,
+            //         'type' => 'RoomCustomization',
+            //         'status' => $rco->status,
+            //         'image' => $rco->roomCustomization ? $rco->roomCustomization->image_url : null,
+            //     ];
+            // }
         }
 
         return response()->json([
             'success' => true,
             'customer_id' => $customer->id,
             'customer_name' => $customer->user ? $customer->user->name : null,
-            'orders' => $orders
+            // 'orders' => $orders
         ]);
     }
 }

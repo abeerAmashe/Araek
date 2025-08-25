@@ -68,7 +68,7 @@ class DatabaseSeeder extends Seeder
         // RoomSeeder::class,
         // ItemTypeSeeder::class,
         // ItemDetailSeeder::class,
-        PurchaseOrderSeeder::class,
+        // PurchaseOrderSeeder::class,
         FavoriteSeeder::class,
         AvailableTimeSeeder::class,
         DeliveryCompanyAvailabilitySeeder::class,

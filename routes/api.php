@@ -35,6 +35,7 @@ use App\Http\Controllers\User\PurchaseOrderController;
 use App\Http\Controllers\User\RatingController;
 use App\Http\Controllers\User\RecommendationController;
 use App\Http\Controllers\User\RoomController;
+use App\Http\Controllers\workshopmanager\tempcontroller;
 use App\Models\Branch;
 use App\Models\Customer;
 use App\Models\CustomizationOrder;
@@ -217,8 +218,7 @@ Route::get('/getItemsByType/{typeId}', [CustomerController::class, 'getItemsByTy
 Route::get('/discount/{id}', [CustomerController::class, 'showDiscountDetails']);
 
 
-//Ali
-//----Auth
+
 
 Route::get('/searchItemsByTypeName', [CustomerController::class, 'searchItemsByTypeName']);
 
@@ -260,16 +260,9 @@ Route::middleware(['auth:sanctum', 'superManager'])->group(function () {
     Route::get('/available_count', [DiagramController::class, 'available_count']);
     Route::get('/sales-details', [DiagramController::class, 'sales_details']);
     Route::get('/get_current_order', [DiagramController::class, 'getInProgressOrders']);
-    // Route::get('/getBranchCount', [DiagramController::class, 'getBranchCount']);
-    // Route::get('/getRoomCount', [DiagramController::class, 'getRoomCount']);
-    // Route::get('/getItemCount', [DiagramController::class, 'getItemCount']);
-    // Route::get('/getUserCount', [DiagramController::class, 'getUserCount']);
-    // Route::get('/getPurchaseOrderCount', [DiagramController::class, 'getPurchaseOrderCount']);
-    // Route::get('/getComplaintCount', [DiagramController::class, 'getComplaintCount']);
-    // Route::get('/calculateProfit', [DiagramController::class, 'calculateProfit']);
     Route::get('/dashboard-stats', [DiagramController::class, 'getDashboardStats']);
-    Route::get('/getOrdersStatusPercentages', [DiagramController::class, 'getOrdersStatusPercentages']);
-    Route::get('/calculateMonthlyProfit', [DiagramController::class, 'calculateMonthlyProfit']);
+    // Route::get('/getOrdersStatusPercentages', [DiagramController::class, 'getOrdersStatusPercentages']);
+    // Route::get('/calculateMonthlyProfit', [DiagramController::class, 'calculateMonthlyProfit']);
     Route::get('/getTodaysNewData', [DiagramController::class, 'getTodaysNewData']);
     //Branch:    
     Route::post('/branches/assign-manager', [BranchController::class, 'assignManagerToBranch']);
@@ -294,8 +287,8 @@ Route::middleware(['auth:sanctum', 'superManager'])->group(function () {
 Route::middleware(['auth:sanctum', 'subManager'])->group(function () {
     Route::get('/getAllRooms2', [SubManagerControllerProductController::class, 'getAllRooms']);
     Route::get('/getAllItems2', [SubManagerControllerProductController::class, 'getAllItems']);
+    Route::get('/GetAllOrders2', [SubManagerControllerPurchaseOrderController::class, 'getAllOrders']);
     //not
-    Route::get('/GetLastOrders', [SubManagerControllerPurchaseOrderController::class, 'getAllOrders']);
     //profile:
     Route::post('/sub-manager/logout', [SubmanagerProfileController::class, 'logoutSubManager']);
     Route::get('/getCustomerList2', [SubManagerControllerUserController::class, 'getCustomers']);
@@ -303,7 +296,7 @@ Route::middleware(['auth:sanctum', 'subManager'])->group(function () {
     Route::get('/available_count2', [SubManagerControllerDiagramController::class, 'available_count']);
     //dont
     Route::get('/get_current_order2', [SubManagerControllerDiagramController::class, 'getInProgressOrders']);
-    Route::get('/getOrdersStatusPercentages2', [SubManagerControllerDiagramController::class, 'getOrdersStatusPercentages']);
+    // Route::get('/getOrdersStatusPercentages2', [SubManagerControllerDiagramController::class, 'getOrdersStatusPercentages']);
     // Dont
     Route::get('/getTodaysNewData2', [SubManagerControllerDiagramController::class, 'getTodaysNewData']);
 });
@@ -322,4 +315,24 @@ Route::middleware(['auth:sanctum', 'deliveryManager'])->group(function () {
     Route::post('/updateAvailablityTime', [AvailabilityController::class, 'update']);
 });
 
-Route::middleware(['auth:sanctum', 'workshop.manager'])->group(function () {});
+Route::middleware(['auth:sanctum', 'workshop.manager'])->group(function () {
+
+    Route::put('/finish_order/{orderId}', [tempcontroller::class, 'markOrderAsComplete']);
+    Route::get('/showZeroPriceAndTime', [tempcontroller::class, 'showZeroPriceAndTime']);
+    Route::put('/update_price_time/{type}/{id}', [tempcontroller::class, 'updatePriceAndTime']);
+});
+
+
+
+
+//Ali Mossa:
+Route::middleware(['auth:sanctum', 'superManager'])->group(function () {
+
+    Route::get('/getOrdersStatusPercentages', [DiagramController::class, 'getOrdersStatusPercentages']);
+    Route::get('/calculateMonthlyProfit', [DiagramController::class, 'calculateMonthlyProfit']);
+});
+
+Route::middleware(['auth:sanctum', 'subManager'])->group(function () {
+
+    Route::get('/getOrdersStatusPercentages2', [SubManagerControllerDiagramController::class, 'getOrdersStatusPercentages']);
+});

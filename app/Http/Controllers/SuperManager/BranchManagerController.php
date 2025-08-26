@@ -89,7 +89,6 @@ class BranchManagerController extends Controller
             'name'      => 'string|max:255',
             'email'     => 'email|unique:users,email,' . $id,
             'phone'     => 'string|max:20',
-            'address'   => 'string|max:255',
         ]);
 
         $manager = SubManager::findOrFail($id);
@@ -98,7 +97,6 @@ class BranchManagerController extends Controller
             'name'    => $request->name,
             'email'   => $request->email,
             'phone'   => $request->phone ?? $manager->phone,
-            'address' => $request->address ?? $manager->address,
         ]);
 
         return response()->json([

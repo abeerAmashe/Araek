@@ -45,7 +45,9 @@ class BranchController extends Controller
     public function index()
     {
         $branches = Branch::all();
-        return response()->json($branches);
+        return response()->json([
+            'branches' => $branches
+        ]);
     }
 
     public function getBranchesWithManagers()

@@ -346,7 +346,6 @@ class CustomerController extends Controller
                         $needed = $cartItem->count;
 
                         if ($available >= $needed) {
-                            // لا مشكلة
                             continue;
                         } elseif ($available > 0) {
                             $missing = $needed - $available;
@@ -618,7 +617,6 @@ class CustomerController extends Controller
                 })
         );
 
-        // دمج وتنسيق النتيجة
         $allCustomizations = $itemCustomizations
             ->merge($roomCustomizations)
             ->sortByDesc('estimated_price')

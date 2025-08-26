@@ -92,7 +92,7 @@ class ProductController extends Controller
             'room_id' => 'required|exists:rooms,id',
             'item_type_id' => 'required|exists:item_types,id',
             'image_url' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'glb_url' => 'nullable|file|mimes:glb,bin|max:10240', // GLB file max 10MB
+            'glb_url' => 'nullable|file|mimes:glb,bin|max:10240', 
             'thumbnail_url' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'wood_length' => 'nullable|numeric',
             'wood_width' => 'nullable|numeric',

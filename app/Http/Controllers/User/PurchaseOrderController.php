@@ -52,7 +52,6 @@ class PurchaseOrderController extends Controller
             $items = $order->item->map(function ($item) {
                 return [
                     'item_id' => $item->id,
-                    // 'room_id' => $item->room_id,
                     'name' => $item->name,
                     'price' => $item->price,
                     'count' => $item->pivot->count,
@@ -63,7 +62,6 @@ class PurchaseOrderController extends Controller
             $rooms = $order->roomOrders->map(function ($roomOrder) {
                 $room = $roomOrder->room;
                 return [
-                    // 'item_id' => null,
                     'room_id' => $room->id ?? null,
                     'name' => $room->name ?? null,
                     'price' => $room->price ?? null,
@@ -78,7 +76,6 @@ class PurchaseOrderController extends Controller
                     'name' => $customization->item->name ?? null,
                     'price' => $customization->final_price ?? null,
                     'count' => $customOrder->count,
-                    // 'image_url' => $customization->image_url ?? null,
                 ];
             });
 
@@ -88,7 +85,6 @@ class PurchaseOrderController extends Controller
                     'name' => $roomCustomOrder->roomCustomization->room->name ?? null,
                     'price' => $roomCustomOrder->deposite_price ?? null,
                     'count' => $roomCustomOrder->count,
-                    // 'image_url' => $customization->image_url ?? null,
                 ];
             });
 

@@ -255,7 +255,7 @@ Route::middleware(['auth:sanctum', 'superManager'])->group(function () {
     Route::get('/gallary-manager-info', [SupermanagerProfileController::class, 'getGallaryManagerInfo']);
     //users:
     Route::get('/getCustomerList', [UserController::class, 'getCustomers']);
-    Route::get('/getCustomersWithOrders/{orders}', [UserController::class, 'getCustomerOrders']);
+    Route::get('/getCustomersWithOrders/{customer_id}', [UserController::class, 'getCustomerOrders']);
     //diagrams:
     Route::get('/available_count', [DiagramController::class, 'available_count']);
     Route::get('/sales-details', [DiagramController::class, 'sales_details']);

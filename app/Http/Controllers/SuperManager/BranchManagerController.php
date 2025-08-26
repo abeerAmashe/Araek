@@ -47,21 +47,24 @@ class BranchManagerController extends Controller
 
 
     public function getBranchManagers()
-    {
-        $managers = SubManager::with('user:id,name,email') // جلب بيانات المستخدم المرتبطة
-            ->get()
-            ->map(function ($manager) {
-                return [
-                    'id' => $manager->id,
-                    'name'   => $manager->user->name,
-                    'image'  => $manager->photo,  // الصورة من جدول sub_managers
-                    'email'  => $manager->user->email,  // الإيميل من جدول sub_managers
-                    'phone'  => $manager->phone,  // الهاتف من جدول sub_managers
-                ];
-            });
+{
+    $managers = SubManager::with('user:id,name,email')
+        ->get()
+        ->map(function ($manager) {
+            return [
+                'id'    => $manager->id,
+                'name'  => $manager->user->name,
+                'image' => $manager->photo, 
+                'email' => $manager->user->email,
+                'phone' => $manager->phone,
+            ];
+        });
 
-        return response()->json($managers);
-    }
+    return response()->json([
+        'managers' => $managers
+    ]);
+}
+
 
 
     public function getBranchManagerDetails($managerId)

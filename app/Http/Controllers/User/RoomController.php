@@ -558,44 +558,7 @@ class RoomController extends Controller
     }
 
 
-    // public function getRoomCustomization($roomId)
-    // {
-    //     $user = auth()->user();
-    //     if (!$user || !$user->customer) {
-    //         return response()->json(['message' => 'login is required!'], 200);
-    //     }
-
-    //     $customerId = $user->customer->id;
-
-    //     $roomCustomization = RoomCustomization::where('room_id', $roomId)
-    //         ->where('customer_id', $customerId)
-    //         ->with('customizedItems.item', 'customizedItems.customization')
-    //         ->first();
-
-    //     $room = Room::with('items')->find($roomId);
-
-    //     if (!$room) {
-    //         return response()->json(['message' => 'Room not found'], 200);
-    //     }
-
-    //     $items = $room->items->map(function ($item) use ($roomCustomization) {
-    //         $customizedItem = optional($roomCustomization)->customizedItems
-    //             ->where('item_id', $item->id)
-    //             ->first();
-
-    //         return [
-    //             'item' => $item,
-    //             'is_customized' => $customizedItem ? true : false,
-    //             'customization' => $customizedItem ? $customizedItem->customization : null,
-    //         ];
-    //     });
-
-    //     return response()->json([
-    //         'room_id' => $room->id,
-    //         'room_name' => $room->name,
-    //         'items' => $items,
-    //     ]);
-    // }
+   
 
     public function getRoomDefaultDetails(int $roomId)
     {

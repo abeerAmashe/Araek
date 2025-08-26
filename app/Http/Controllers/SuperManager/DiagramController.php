@@ -16,72 +16,6 @@ use Illuminate\Support\Facades\DB;
 class DiagramController extends Controller
 {
 
-    // public function getBranchCount()
-    // {
-    //     $totalBranches = Branch::count();
-
-    //     return response()->json([
-    //         'total_branches' => $totalBranches
-    //     ], 200);
-    // }
-
-    // public function getRoomCount()
-    // {
-    //     $totalRooms = Room::count();
-
-    //     return response()->json([
-    //         'total_rooms' => $totalRooms
-    //     ], 200);
-    // }
-
-    // public function getItemCount()
-    // {
-    //     $totalItems = Item::count();
-
-    //     return response()->json([
-    //         'total_items' => $totalItems
-    //     ], 200);
-    // }
-
-    // public function getUserCount()
-    // {
-    //     $totalUsers = User::count();
-
-    //     return response()->json([
-    //         'total_users' => $totalUsers
-    //     ], 200);
-    // }
-
-    // public function getPurchaseOrderCount()
-    // {
-    //     $totalOrders = PurchaseOrder::count();
-    //     return response()->json([
-    //         'total_purchase_orders' => $totalOrders
-    //     ], 200);
-    // }
-
-    // public function getComplaintCount()
-    // {
-    //     $totalComplaints = Complaint::count();
-    //     return response()->json([
-    //         'total_complaints' => $totalComplaints
-    //     ], 200);
-    // }
-
-    // public function calculateProfit()
-    // {
-    //     $totalCompletedOrders = PurchaseOrder::where('status', 'complete')->sum('total_price');
-
-    //     $profit = $totalCompletedOrders * 0.3;
-
-    //     return response()->json([
-    //         'success' => true,
-    //         'total_completed_orders_value' => $totalCompletedOrders,
-    //         'profit' => $profit
-    //     ]);
-    // }
-
-
     public function getDashboardStats()
     {
         $totalBranches = Branch::count();
@@ -91,7 +25,6 @@ class DiagramController extends Controller
         $totalOrders = PurchaseOrder::count();
         $totalComplaints = Complaint::count();
 
-        // الطلبات المكتملة لحساب الأرباح
         $totalCompletedOrders = PurchaseOrder::where('status', 'complete')->sum('total_price');
         $profit = round($totalCompletedOrders * 0.3, 2);
 
@@ -133,71 +66,6 @@ class DiagramController extends Controller
         return response()->json($result);
     }
 
-
-    // public function allDetails()
-    // {
-    //     $purchaseOrders = PurchaseOrder::with([
-    //         'itemOrders.item',
-    //         'roomOrders.room',
-    //         'customizationOrders.customization',
-    //         'roomcustomizationOrders.roomCustomization'
-    //     ])->get();
-
-    //     $data = $purchaseOrders->map(function ($purchaseOrder) {
-
-    //         $items = $purchaseOrder->itemOrders->map(function ($itemOrder) {
-    //             return [
-    //                 'item_name' => $itemOrder->item->name ?? 'Unknown',
-    //                 'quantity' => $itemOrder->count,
-    //                 'unit_price' => $itemOrder->price,
-    //                 'total_price' => $itemOrder->price * $itemOrder->count,
-    //             ];
-    //         });
-
-    //         $rooms = $purchaseOrder->roomOrders->map(function ($roomOrder) {
-    //             return [
-    //                 'room_name' => $roomOrder->room->name ?? 'Unknown',
-    //                 'quantity' => $roomOrder->count,
-    //                 'deposite_price' => $roomOrder->deposite_price,
-    //                 'total_price' => $roomOrder->deposite_price * $roomOrder->count,
-    //             ];
-    //         });
-
-    //         $customizations = $purchaseOrder->customizationOrders->map(function ($customOrder) {
-    //             return [
-    //                 'customization_name' => $customOrder->customization->name ?? 'Unknown',
-    //                 'quantity' => $customOrder->count,
-    //                 'deposite_price' => $customOrder->deposite_price,
-    //                 'total_price' => $customOrder->deposite_price * $customOrder->count,
-    //             ];
-    //         });
-
-    //         $roomCustomizations = $purchaseOrder->roomcustomizationOrders->map(function ($roomCustOrder) {
-    //             return [
-    //                 'room_customization_name' => $roomCustOrder->roomCustomization->name ?? 'Unknown',
-    //                 'quantity' => $roomCustOrder->count,
-    //                 'deposite_price' => $roomCustOrder->deposite_price,
-    //                 'total_price' => $roomCustOrder->deposite_price * $roomCustOrder->count,
-    //             ];
-    //         });
-
-    //         return [
-    //             'purchase_order_id' => $purchaseOrder->id,
-    //             'sale_date' => $purchaseOrder->created_at->format('Y-m-d H:i:s'), // ✅ إضافة تاريخ البيع
-    //             'items' => $items,
-    //             'rooms' => $rooms,
-    //             'customizations' => $customizations,
-    //             'room_customizations' => $roomCustomizations,
-    //             'total_order_price' =>
-    //             $items->sum('total_price') +
-    //                 $rooms->sum('total_price') +
-    //                 $customizations->sum('total_price') +
-    //                 $roomCustomizations->sum('total_price'),
-    //         ];
-    //     });
-
-    //     return response()->json($data);
-    // }
     public function sales_details()
     {
         $purchaseOrders = PurchaseOrder::with([
@@ -222,7 +90,6 @@ class DiagramController extends Controller
                 ];
             });
 
-            // الغرف
             $rooms = $purchaseOrder->roomOrders->map(function ($roomOrder) use ($purchaseOrder, $saleDate) {
                 return [
                     'id' => $purchaseOrder->id,
@@ -235,7 +102,6 @@ class DiagramController extends Controller
                 ];
             });
 
-            // تخصيص العناصر
             $customizations = $purchaseOrder->customizationOrders->map(function ($customOrder) use ($purchaseOrder, $saleDate) {
                 return [
                     'id' => $purchaseOrder->id,
@@ -248,7 +114,6 @@ class DiagramController extends Controller
                 ];
             });
 
-            // تخصيص الغرف
             $roomCustomizations = $purchaseOrder->roomcustomizationOrders->map(function ($roomCustOrder) use ($purchaseOrder, $saleDate) {
                 return [
                     'id' => $purchaseOrder->id,
@@ -297,33 +162,6 @@ class DiagramController extends Controller
             'data' => $percentages
         ]);
     }
-
-    // public function calculateMonthlyProfit()
-    // {
-    //     $monthlyProfits = PurchaseOrder::select(
-    //         DB::raw('YEAR(created_at) as year'),
-    //         DB::raw('MONTH(created_at) as month'),
-    //         DB::raw('SUM(total_price) as total_completed_orders_value')
-    //     )
-    //         ->where('status', 'complete')
-    //         ->groupBy(DB::raw('YEAR(created_at)'), DB::raw('MONTH(created_at)'))
-    //         ->orderBy('year', 'asc')
-    //         ->orderBy('month', 'asc')
-    //         ->get()
-    //         ->map(function ($row) {
-    //             return [
-    //                 'year' => $row->year,
-    //                 'month' => $row->month,
-    //                 'total_completed_orders_value' => (float) $row->total_completed_orders_value,
-    //                 'profit' => round($row->total_completed_orders_value * 0.3, 2)
-    //             ];
-    //         });
-
-    //     return response()->json([
-    //         'success' => true,
-    //         'data' => $monthlyProfits
-    //     ], 200);
-    // }
 
     public function calculateMonthlyProfit()
     {
@@ -435,7 +273,6 @@ class DiagramController extends Controller
             ];
         });
 
-        // الشكاوي الجديدة
         $complaints = Complaint::whereDate('created_at', $today)->with('customer.user')->get()->map(function ($c) {
             return [
                 'complaint_id' => $c->id,
@@ -446,7 +283,6 @@ class DiagramController extends Controller
             ];
         });
 
-        // الفروع الجديدة
         $branches = Branch::whereDate('created_at', $today)->get()->map(function ($b) {
             return [
                 'branch_id' => $b->id,
@@ -457,7 +293,6 @@ class DiagramController extends Controller
             ];
         });
 
-        // المستخدمين الجدد
         $users = User::whereDate('created_at', $today)->get()->map(function ($u) {
             return [
                 'user_id' => $u->id,

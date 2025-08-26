@@ -162,8 +162,7 @@ class FavoriteController extends Controller
 
         $roomsLikes = $likes->whereNotNull('room_id')->map(function ($like) {
             $room = Room::where('id', $like->room_id)->first();
-            // return  $room->name;
-            // return $room;
+         
             return [
                 'room_id' => $like->room_id,
                 'room_name' => $room->name,

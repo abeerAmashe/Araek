@@ -234,13 +234,22 @@ Route::middleware('auth:sanctum')->group(function () {
 
 //super Manager:
 Route::middleware(['auth:sanctum', 'superManager'])->group(function () {
+    Route::delete('/delete_wood/{id}', [ProductController::class, 'destroyWood']);
+    Route::delete('/delete_fabric/{id}', [ProductController::class, 'destroyFabric']);
+    Route::get('/showFabric', [Productcontroller::class, 'showFabric']);
+    Route::get('/showWood', [ProductController::class, 'showWood']);
+
+
+
+
+
     Route::get('/getCategories', [ProductController::class, 'getAllCategories']);
     Route::get('/getTypes', [ProductController::class, 'getType']);
 
-    Route::delete('/deleteType/{id}',[ProductController::class,'deleteType']);
-    Route::delete('/deleteCategory/{id}',[ProductController::class,'deleteCategory']);
+    Route::delete('/deleteType/{id}', [ProductController::class, 'deleteType']);
+    Route::delete('/deleteCategory/{id}', [ProductController::class, 'deleteCategory']);
 
-    
+
     Route::post('/addBalance/{customerId}', [UserController::class, 'addBalance']);
     //
     Route::get('/getAllRooms', [ProductController::class, 'getAllRooms']);

@@ -99,8 +99,6 @@ class ProductController extends Controller
             'message' => 'Room deleted successfully'
         ], 200);
     }
-
-
     public function storeItem(Request $request)
     {
         $validated = $request->validate([
@@ -181,7 +179,6 @@ class ProductController extends Controller
             'message' => 'Item created successfully',
         ], 201);
     }
-
     public function storeOptions(Request $request, $roomId)
     {
         $validated = $request->validate([
@@ -207,8 +204,6 @@ class ProductController extends Controller
             'room' => $room->load('roomDetails.wood', 'roomDetails.fabric')
         ]);
     }
-
-
     public function storeWood(Request $request)
     {
         $validated = $request->validate([
@@ -256,7 +251,6 @@ class ProductController extends Controller
             'data' => $wood->load('woodType', 'woodColor')
         ], 201);
     }
-
     public function storeFabric(Request $request)
     {
         $validated = $request->validate([
@@ -314,7 +308,6 @@ class ProductController extends Controller
             'rooms' => $rooms
         ], 200);
     }
-
     public function getAllItems()
     {
         $items = Item::select('id', 'name', 'description', 'price', 'time', 'image_url')
@@ -325,7 +318,6 @@ class ProductController extends Controller
             'items' => $items
         ], 200);
     }
-
     public function updateItem(Request $request, $itemId)
     {
         $validated = $request->validate([
@@ -351,7 +343,6 @@ class ProductController extends Controller
             'item'    => $item
         ], 200);
     }
-
     public function deleteItem($itemId)
     {
         $item = Item::findOrFail($itemId);
@@ -362,7 +353,6 @@ class ProductController extends Controller
             'message' => 'Done ^_^ '
         ], 200);
     }
-
     public function updateRoom(Request $request, $roomId)
     {
         $validated = $request->validate([
@@ -382,7 +372,6 @@ class ProductController extends Controller
             'room'    => $room
         ], 200);
     }
-
     public function updateFabricPrice(Request $request, $fabricTypeId)
     {
         $validated = $request->validate([
@@ -400,7 +389,6 @@ class ProductController extends Controller
             'fabric_type' => $fabricType
         ], 200);
     }
-
     public function updateWoodPrice(Request $request, $woodTypeId)
     {
         $validated = $request->validate([
@@ -418,7 +406,6 @@ class ProductController extends Controller
             'wood_type' => $woodType
         ], 200);
     }
-
     public function storeItemType(Request $request)
     {
         $validated = $request->validate([
@@ -433,7 +420,6 @@ class ProductController extends Controller
             'item_type' => $itemType
         ], 201);
     }
-
     public function storeCategory(Request $request)
     {
         $validated = $request->validate([
@@ -447,15 +433,12 @@ class ProductController extends Controller
             'category' => $category
         ], 201);
     }
-
-
     public function getAllCategories()
     {
         $categories = Category::select('id', 'name')->distinct()->get();
 
         return response()->json(['categories' => $categories], 200);
     }
-
     public function getType()
     {
         $itemTypes = ItemType::all();
@@ -463,8 +446,6 @@ class ProductController extends Controller
             'item_types' => $itemTypes
         ]);
     }
-
-
     public function deleteType($id)
     {
         $itemType = ItemType::find($id);
@@ -502,5 +483,67 @@ class ProductController extends Controller
         return response()->json([
             'message' => 'Category deleted successfully'
         ], 200);
+    }
+    public function showFabric()
+    {
+        $fabrics = Fabric::with(['fabricType', 'fabricColor'])
+            ->get()
+            ->map(function ($fabric) {
+                return [
+                    'id' => $fabric->id,
+                    'type' => $fabric->fabricType ? $fabric->fabricType->name : null,
+                    'color' => $fabric->fabricColor ? $fabric->fabricColor->name : null,
+                    'price_per_meter' => $fabric->price_per_meter,
+                ];
+            });
+
+        return response()->json($fabrics);
+    }
+    public function showWood()
+    {
+        $woods = Wood::with(['woodType', 'woodColor'])
+            ->get()
+            ->map(function ($wood) {
+                return [
+                    'id' => $wood->id,
+                    'type' => $wood->woodType ? $wood->woodType->name : null,
+                    'color' => $wood->woodColor ? $wood->woodColor->name : null,
+                    'price_per_meter' => $wood->price_per_meter,
+                ];
+            });
+
+        return response()->json($woods);
+    }
+    public function destroyWood($id)
+    {
+        $wood = Wood::findOrFail($id);
+
+        if ($wood->roomDetails()->exists() || $wood->itemDetails()->exists()) {
+            return response()->json([
+                'message' => 'Cannot delete wood because it is used in rooms or items.'
+            ], 400);
+        }
+
+        $wood->delete();
+
+        return response()->json([
+            'message' => 'Done'
+        ]);
+    }
+    public function destroyFabric($id)
+    {
+        $fabric = Fabric::findOrFail($id);
+
+        if ($fabric->roomDetails()->exists() || $fabric->itemDetails()->exists()) {
+            return response()->json([
+                'message' => 'Cannot delete fabric because it is used in rooms or items.'
+            ], 400);
+        }
+
+        $fabric->delete();
+
+        return response()->json([
+            'message' => 'Done'
+        ]);
     }
 }

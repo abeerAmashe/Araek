@@ -23,7 +23,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 
-class CartController extends Controller
+class  CartController extends Controller
 {
     public function addToCart2(Request $request)
     {
@@ -819,12 +819,88 @@ class CartController extends Controller
         ]);
     }
 
+    // protected function findAvailableDeliveryTime()
+    // {
+    //     $user = auth()->user();
+    //     $purchaseOrder = $user->customer->purchaseOrders;
+
+    //     $customerId = auth()->user()->customer->id;
+
+    //     $customerTimes = AvailableTime::where('customer_id', $customerId)
+    //         ->pluck('available_at');
+
+    //     $companyAvailability = DeliveryCompanyAvailability::get()
+    //         ->keyBy('day_of_week');
+
+    //     $bookedTimes = PurchaseOrder::whereNotNull('delivery_time')
+    //         ->pluck('delivery_time')
+    //         ->map(fn($time) => Carbon::parse($time)->format('Y-m-d H:i'))
+    //         ->toArray();
+
+    //     foreach ($customerTimes as $time) {
+    //         $carbonTime = Carbon::parse($time);
+    //         $formattedTime = $carbonTime->format('Y-m-d H:i');
+    //         $dayName = strtolower($carbonTime->format('l'));
+
+    //         if (!$companyAvailability->has($dayName)) {
+    //             continue;
+    //         }
+
+    //         $startTime = $companyAvailability[$dayName]->start_time;
+    //         $endTime = $companyAvailability[$dayName]->end_time;
+
+    //         $timeOnly = $carbonTime->format('H:i:s');
+
+    //         if ($timeOnly >= $startTime && $timeOnly <= $endTime) {
+    //             if (!in_array($formattedTime, $bookedTimes)) {
+
+    //                 if ($user->userFcmTokens->exists()) {
+    //                     try {
+    //                         FirebaseNotification::setTitle('Delivery Appointment Scheduled')
+    //                             ->setBody("A delivery appointment has been scheduled for your order: {$formattedTime}")
+    //                             ->setUsers(collect([$user]))
+    //                             ->setData([
+    //                                 'order_id' => $purchaseOrder->id,
+    //                                 'delivery_time' => $formattedTime,
+    //                                 'type' => 'delivery_scheduled'
+    //                             ])
+    //                             ->push();
+    //                     } catch (\Exception $e) {
+    //                         Log::error('Failed to send delivery appointment notification', [
+    //                             'user_id' => $user->id,
+    //                             'error' => $e->getMessage(),
+    //                         ]);
+    //                     }
+    //                 }
+
+    //                 return $formattedTime;
+    //             }
+    //         }
+    //     }
+
+    //     return null;
+    // }
+
     protected function findAvailableDeliveryTime()
     {
         $user = auth()->user();
-        $purchaseOrder = $user->customer->purchaseOrders;
+        $customerId = $user->customer->id;
 
-        $customerId = auth()->user()->customer->id;
+        $purchaseOrder = PurchaseOrder::where('customer_id', $customerId)
+            ->where('status', 'complete')
+            ->first();
+
+        if (!$purchaseOrder) {
+            return response()->json([
+                'message' => 'there is no completed order'
+            ], 404);
+        }
+
+        if ($purchaseOrder->is_paid !== 'paid') {
+            return response()->json([
+                'message' => 'you should pay before that'
+            ], 400);
+        }
 
         $customerTimes = AvailableTime::where('customer_id', $customerId)
             ->pluck('available_at');
@@ -848,7 +924,6 @@ class CartController extends Controller
 
             $startTime = $companyAvailability[$dayName]->start_time;
             $endTime = $companyAvailability[$dayName]->end_time;
-
             $timeOnly = $carbonTime->format('H:i:s');
 
             if ($timeOnly >= $startTime && $timeOnly <= $endTime) {
@@ -873,13 +948,19 @@ class CartController extends Controller
                         }
                     }
 
-                    return $formattedTime;
+                    return response()->json([
+                        'message' => 'Done!',
+                        'delivery_time' => $formattedTime
+                    ]);
                 }
             }
         }
 
-        return null;
+        return response()->json([
+            'message' => 'there is no time,please enter another available time!'
+        ], 404);
     }
+
 
     public function getNearestBranch(Request $request)
     {

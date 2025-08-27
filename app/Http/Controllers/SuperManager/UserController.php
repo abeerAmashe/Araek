@@ -91,4 +91,34 @@ class UserController extends Controller
             'orders' => $orders
         ]);
     }
+
+
+
+    public function addBalance(Request $request, $customerId)
+    {
+        $request->validate([
+            'amount' => 'required|numeric|min:0.01',
+        ]);
+
+        $customer = Customer::with('user.wallets')->findOrFail($customerId);
+
+        $wallet = $customer->user->wallets()
+            ->where('is_active', 1)
+            ->where('wallet_type', 'investment')
+            ->first();
+
+        if (!$wallet) {
+            return response()->json([
+                'message' => 'there is no waller',
+            ], 404);
+        }
+
+        $wallet->balance += $request->amount;
+        $wallet->save();
+
+        return response()->json([
+            'message' => 'Done',
+            'new_balance' => $wallet->balance,
+        ]);
+    }
 }

@@ -234,9 +234,14 @@ Route::middleware('auth:sanctum')->group(function () {
 
 //super Manager:
 Route::middleware(['auth:sanctum', 'superManager'])->group(function () {
+    Route::get('/getCategories', [ProductController::class, 'getAllCategories']);
+    Route::get('/getTypes', [ProductController::class, 'getType']);
+
+    
+    Route::post('/addBalance/{customerId}', [UserController::class, 'addBalance']);
     //
     Route::get('/getAllRooms', [ProductController::class, 'getAllRooms']);
-    Route::delete('/deleteRoom/{id}',[ProductController::class,'deleteRoom']);
+    Route::delete('/deleteRoom/{id}', [ProductController::class, 'deleteRoom']);
     //
     Route::get('/getAllItems', [ProductController::class, 'getAllItems']);
     Route::post('/updateItem/{itemId}', [ProductController::class, 'updateItem']);
@@ -281,7 +286,7 @@ Route::middleware(['auth:sanctum', 'superManager'])->group(function () {
     Route::post('/add_branch_manager', [BranchManagerController::class, 'store']);
     Route::get('/get_branch_managers', [BranchManagerController::class, 'getBranchManagers']);
     Route::delete('/delete_branchmanager/{id}', [BranchManagerController::class, 'delete']);
-    Route::post('/edit_branchManager_info/{id}', [BranchManagerController::class, 'update']);
+    Route::put('/edit_branchManager_info/{id}', [BranchManagerController::class, 'update']);
     Route::get('/get_branchmanager_info/{managerId}', [BranchManagerController::class, 'getBranchManagerDetails']);
     //Complaint
     Route::get('/get_all_complaint', [SupermanagerComplaintController::class, 'index']);
@@ -326,9 +331,8 @@ Route::middleware(['auth:sanctum', 'workshop.manager'])->group(function () {
     Route::put('/finish_order/{orderId}', [tempcontroller::class, 'markOrderAsComplete']);
     Route::get('/showZeroPriceAndTime', [tempcontroller::class, 'showZeroPriceAndTime']);
     Route::put('/update_price_time/{type}/{id}', [tempcontroller::class, 'updatePriceAndTime']);
-    Route::post('/updateItemCount/{itemId}',[tempcontroller::class,'updateItemCount']);
-    Route::post('/updateRoomCount/{roomId}',[tempcontroller::class,'updateRoomCount']);
-
+    Route::post('/updateItemCount/{itemId}', [tempcontroller::class, 'updateItemCount']);
+    Route::post('/updateRoomCount/{roomId}', [tempcontroller::class, 'updateRoomCount']);
 });
 
 

@@ -22,7 +22,7 @@ class AuthController extends Controller
             'email' => 'required|email|unique:users',
             'password' => 'required|min:8',
             'C_password' => 'required|same:password',
-            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif',
+            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp',
             'phone_number' => 'required|string',
             'fcm_token' => 'nullable|string'
 
@@ -74,6 +74,7 @@ class AuthController extends Controller
             'token' => $token,
         ], 200);
     }
+    
     public function login(Request $request)
     {
         $user = User::where('email', $request->email)->first();

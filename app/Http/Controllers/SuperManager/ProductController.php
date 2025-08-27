@@ -447,4 +447,21 @@ class ProductController extends Controller
             'category' => $category
         ], 201);
     }
+
+
+    public function getAllCategories()
+    {
+        $categories = Category::select('id', 'name')->distinct()->get();
+
+        return response()->json(['categories' => $categories], 200);
+    }
+
+    public function getType()
+{
+    $itemTypes = ItemType::all();
+    return response()->json([
+        'item_types' => $itemTypes
+    ]);
+}
+
 }

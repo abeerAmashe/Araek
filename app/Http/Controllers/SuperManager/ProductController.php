@@ -83,6 +83,23 @@ class ProductController extends Controller
             'room' => $room->load('roomDetail')
         ], 201);
     }
+    public function deleteRoom($id)
+    {
+        $room = Room::find($id);
+
+        if (!$room) {
+            return response()->json([
+                'message' => 'Room not found'
+            ], 404);
+        }
+
+        $room->delete();
+
+        return response()->json([
+            'message' => 'Room deleted successfully'
+        ], 200);
+    }
+
 
     public function storeItem(Request $request)
     {
@@ -92,7 +109,7 @@ class ProductController extends Controller
             'room_id' => 'required|exists:rooms,id',
             'item_type_id' => 'required|exists:item_types,id',
             'image_url' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'glb_url' => 'nullable|file|mimes:glb,bin|max:10240', 
+            'glb_url' => 'nullable|file|mimes:glb,bin|max:10240',
             'thumbnail_url' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'wood_length' => 'nullable|numeric',
             'wood_width' => 'nullable|numeric',
@@ -289,8 +306,10 @@ class ProductController extends Controller
     }
     public function getAllRooms()
     {
-        $rooms = Room::select('id', 'name', 'image_url', 'description')->get();
-
+        $rooms = Room::select('id', 'name', 'image_url', 'description', 'price', 'time')
+            ->where('price', '>', 0)
+            ->where('time', '>', 0)
+            ->get();
         return response()->json([
             'rooms' => $rooms
         ], 200);
@@ -298,8 +317,10 @@ class ProductController extends Controller
 
     public function getAllItems()
     {
-        $items = Item::select('id', 'name', 'description', 'price')->get();
-
+        $items = Item::select('id', 'name', 'description', 'price', 'time', 'image_url')
+            ->where('price', '>', 0)
+            ->where('time', '>', 0)
+            ->get();
         return response()->json([
             'items' => $items
         ], 200);

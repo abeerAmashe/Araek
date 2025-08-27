@@ -16,7 +16,7 @@ class CreateItemsTable extends Migration
             $table->decimal('price', 10, 2);
             $table->string('image_url')->nullable();
             $table->text('description')->nullable();
-            $table->integer('count')->default(0);
+            $table->integer('count')->default(1);
             $table->string('glb_url')->nullable();
             $table->string('thumbnail_url')->nullable();
             $table->integer('count_reserved');

@@ -20,7 +20,7 @@ return new class extends Migration
             $table->integer('count_reserved')->default(0);
             $table->decimal('time')->default(0);
             $table->decimal('price')->default(0);
-            $table->integer('count')->default(0);
+            $table->integer('count')->default(1);
             $table->integer('wood_type_id');
             $table->integer('wood_color_id');
             $table->integer('fabric_type_id');

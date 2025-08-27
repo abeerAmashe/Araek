@@ -327,18 +327,23 @@ class RoomController extends Controller
             'category' => [
                 'id' => $category->id,
                 'name' => $category->name,
-                'rooms' => $category->rooms->map(function ($room) {
-                    return [
-                        'id' => $room->id,
-                        'name' => $room->name,
-                        'description' => $room->description,
-                        'price' => $room->price,
-                        'image_url' => $room->image_url,
-                        'likes_count' => $room->likes()->count(),
-                        'average_rating' => (float) round($room->ratings()->avg('rate'), 1),
-                        'feedbacks' => $room->ratings->pluck('feedback')->filter()->values(),
-                    ];
-                })
+                'rooms' => $category->rooms
+                    ->filter(function ($room) {
+                        return $room->time > 0 && $room->price > 0;
+                    })
+                    ->map(function ($room) {
+                        return [
+                            'id' => $room->id,
+                            'name' => $room->name,
+                            'description' => $room->description,
+                            'price' => $room->price,
+                            'image_url' => $room->image_url,
+                            'likes_count' => $room->likes()->count(),
+                            'average_rating' => (float) round($room->ratings()->avg('rate'), 1),
+                            'feedbacks' => $room->ratings->pluck('feedback')->filter()->values(),
+                        ];
+                    })
+
             ]
         ], 200);
     }
@@ -558,7 +563,7 @@ class RoomController extends Controller
     }
 
 
-   
+
 
     public function getRoomDefaultDetails(int $roomId)
     {

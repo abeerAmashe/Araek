@@ -188,8 +188,10 @@ class CustomerController extends Controller
             ], 200);
         }
 
-        $items = Item::where('item_type_id', $typeId)->get();
-
+        $items = Item::where('item_type_id', $typeId)
+            ->where('price', '>', 0)  
+            ->where('time', '>', 0)  
+            ->get();
         return response()->json([
             'type' => $type->name,
             'items' => $items,
@@ -215,6 +217,8 @@ class CustomerController extends Controller
         }
 
         $items = Item::whereIn('item_type_id', $types->pluck('id'))
+            ->where('price', '>', 0)
+            ->where('time', '>', 0)
             ->with(['itemType', 'likes', 'ratings'])
             ->get();
 
@@ -263,52 +267,63 @@ class CustomerController extends Controller
             return response()->json(['message' => 'Type not found'], 200);
         }
 
-        $query = Item::select('items.*')
-            ->join('item_details', 'item_details.item_id', '=', 'items.id')
-            ->join('fabrics', 'fabrics.id', '=', 'item_details.fabric_id')
-            ->join('woods', 'woods.id', '=', 'item_details.wood_id')
-            ->whereIn('item_type_id', $types->pluck('id'));
+        $result = $types->map(function ($type) use ($request) {
+            $query = $type->items()
+                ->where('price', '>', 0)
+                ->where('time', '>', 0);
 
-        if ($request->filled('price_min') && $request->filled('price_max')) {
-            $query->whereBetween('items.price', [$request->price_min, $request->price_max]);
-        } elseif ($request->filled('price_min')) {
-            $query->where('items.price', '>=', $request->price_min);
-        } elseif ($request->filled('price_max')) {
-            $query->where('items.price', '<=', $request->price_max);
-        }
+            if ($request->filled('price_min') && $request->filled('price_max')) {
+                $query->whereBetween('price', [$request->price_min, $request->price_max]);
+            } elseif ($request->filled('price_min')) {
+                $query->where('price', '>=', $request->price_min);
+            } elseif ($request->filled('price_max')) {
+                $query->where('price', '<=', $request->price_max);
+            }
 
-        if ($request->fabric_color) {
-            $query->where('item_details.fabric_color', 'like', '%' . $request->fabric_color . '%');
-        }
+            if ($request->fabric_color) {
+                $query->whereHas('itemDetail', function ($q) use ($request) {
+                    $q->where('fabric_color', 'like', '%' . $request->fabric_color . '%');
+                });
+            }
 
-        if ($request->fabric_name) {
-            $query->where('fabrics.name', 'like', '%' . $request->fabric_name . '%');
-        }
+            if ($request->fabric_name) {
+                $query->whereHas('itemDetail.fabric', function ($q) use ($request) {
+                    $q->where('name', 'like', '%' . $request->fabric_name . '%');
+                });
+            }
 
-        if ($request->wood_name) {
-            $query->where('woods.name', 'like', '%' . $request->wood_name . '%');
-        }
+            if ($request->wood_name) {
+                $query->whereHas('itemDetail.wood', function ($q) use ($request) {
+                    $q->where('name', 'like', '%' . $request->wood_name . '%');
+                });
+            }
 
-        $items = $query->get();
+            $items = $query->get();
 
-        $itemsFormatted = $items->map(function ($item) {
+            $itemsFormatted = $items->map(function ($item) {
+                $detail = $item->itemDetail->first();
+                return [
+                    'id' => $item->id,
+                    'room_id' => $item->room_id,
+                    'name' => $item->name,
+                    'price' => $item->price,
+                    'type' => $item->itemType->name ?? null,
+                    'fabric_color' => $detail->fabric_color ?? null,
+                    'fabric_name' => $detail->fabric->name ?? null,
+                    'wood_name' => $detail->wood->name ?? null,
+                ];
+            });
+
             return [
-                'id' => $item->id,
-                'room_id' => $item->room_id,
-                'name' => $item->name,
-                'price' => $item->price,
-                'type' => $item->itemType->name ?? null,
-                'fabric_color' => $item->itemDetail->fabric_color ?? null,
-                'fabric_name' => $item->itemDetail->fabric->name ?? null,
-                'wood_name' => $item->itemDetail->wood->name ?? null,
+                'type_id' => $type->id,
+                'type_name' => $type->name,
+                'items' => $itemsFormatted
             ];
         });
 
-        return response()->json([
-            'types' => $types->pluck('name'),
-            'items' => $itemsFormatted
-        ]);
+        return response()->json($result, 200);
     }
+
 
     private function validateCartReservations($customerId)
     {
@@ -595,7 +610,7 @@ class CustomerController extends Controller
                             ? asset('storage/' . $customization->item->image)
                             : null,
                         'estimated_price' => (float)$customization->final_price,
-                        'estimated_time' =>(int) $customization->final_time,
+                        'estimated_time' => (int) $customization->final_time,
                     ];
                 })
         );
@@ -611,8 +626,8 @@ class CustomerController extends Controller
                         'image' => $roomCustomization->room->image_url
                             ? asset('storage/' . $roomCustomization->room->image)
                             : null,
-                        'estimated_price' =>(float) $roomCustomization->final_price,
-                        'estimated_time' => (int)$roomCustomization->final_time ,
+                        'estimated_price' => (float) $roomCustomization->final_price,
+                        'estimated_time' => (int)$roomCustomization->final_time,
                     ];
                 })
         );

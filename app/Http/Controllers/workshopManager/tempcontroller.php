@@ -72,32 +72,89 @@ class tempcontroller extends Controller
     }
 
     public function updatePriceAndTime(Request $request, $type, $id)
+{
+    if ($type === 'room') {
+        $model = Room::find($id);
+    } elseif ($type === 'item') {
+        $model = Item::find($id);
+    } else {
+        return response()->json(['message' => 'Invalid type'], 400);
+    }
+
+    if (!$model) {
+        return response()->json(['message' => ucfirst($type) . ' not found'], 404);
+    }
+
+    $data = $request->validate([
+        'price' => 'required|numeric|min:0',
+        'time'  => 'required|numeric|min:0',
+    ]);
+
+    $priceWithProfit = $data['price'] * 1.3;
+
+    $model->update([
+        'price' => $priceWithProfit,
+        'time'  => $data['time'],
+    ]);
+
+    return response()->json([
+        'message' => ucfirst($type) . ' updated successfully',
+        $type => $model
+    ]);
+}
+
+
+    public function updateItemCount(Request $request, $itemId)
     {
-        if ($type === 'room') {
-            $model = Room::find($id);
-        } elseif ($type === 'item') {
-            $model = Item::find($id);
-        } else {
-            return response()->json(['message' => 'Invalid type'], 400);
-        }
-
-        if (!$model) {
-            return response()->json(['message' => ucfirst($type) . ' not found'], 404);
-        }
-
-        $data = $request->validate([
-            'price' => 'required|numeric|min:0',
-            'time'  => 'required|numeric|min:0',
+        $request->validate([
+            'count' => 'required|integer|min:0'
         ]);
 
-        $model->update([
-            'price' => $data['price'],
-            'time'  => $data['time'],
-        ]);
+        $item = Item::find($itemId);
+
+        if (!$item) {
+            return response()->json([
+                'message' => 'Item not found'
+            ], 404);
+        }
+
+        $item->count = $request->count;
+        $item->save();
 
         return response()->json([
-            'message' => ucfirst($type) . ' updated successfully',
-            $type => $model
+            'message' => 'Item count updated successfully',
+            'item' => [
+                'id' => $item->id,
+                'name' => $item->name,
+                'count' => $item->count
+            ]
+        ], 200);
+    }
+
+    public function updateRoomCount(Request $request, $roomId)
+    {
+        $request->validate([
+            'count' => 'required|integer|min:0'
         ]);
+
+        $room = Room::find($roomId);
+
+        if (!$room) {
+            return response()->json([
+                'message' => 'Room not found'
+            ], 404);
+        }
+
+        $room->count = $request->count;
+        $room->save();
+
+        return response()->json([
+            'message' => 'Room count updated successfully',
+            'room' => [
+                'id' => $room->id,
+                'name' => $room->name,
+                'count' => $room->count
+            ]
+        ], 200);
     }
 }

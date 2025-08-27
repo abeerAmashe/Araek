@@ -128,9 +128,9 @@ Route::get('/getTrending', [RecommendationController::class, 'getTrending']);
 // Route::get('/trendingRooms',[RoomController::class,'trendingRooms']);
 //.
 Route::get('/showCategories', [CustomerController::class, 'getAllCategories']);
-//.
+//
 Route::get('/getRoomsByCategory/{category_id}', [RoomController::class, 'getRoomsByCategory']);
-//.
+//
 Route::get('/getItemByRoom/{room_id}', [RoomController::class, 'getRoomItems']);
 //.
 Route::get('/showFerniture', [RoomController::class, 'showFurniture']);
@@ -138,7 +138,7 @@ Route::get('/showFerniture', [RoomController::class, 'showFurniture']);
 //.
 //.
 // Route::get('/getFeedbackAndRatings', [RatingController::class, 'getFeedbackAndRatings']);
-
+//
 Route::get('filterItemsWithType', [CustomerController::class, 'filterItemsWithType']);
 
 
@@ -211,6 +211,7 @@ Route::get('/exchange-rate/{from}/{to}', [HelperController::class, 'getExchangeR
 
 
 Route::get('/getType', [CustomerController::class, 'getType']);
+//
 Route::get('/getItemsByType/{typeId}', [CustomerController::class, 'getItemsByType']);
 
 
@@ -219,7 +220,7 @@ Route::get('/discount/{id}', [CustomerController::class, 'showDiscountDetails'])
 
 
 
-
+//
 Route::get('/searchItemsByTypeName', [CustomerController::class, 'searchItemsByTypeName']);
 
 
@@ -233,7 +234,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
 //super Manager:
 Route::middleware(['auth:sanctum', 'superManager'])->group(function () {
+    //
     Route::get('/getAllRooms', [ProductController::class, 'getAllRooms']);
+    Route::delete('/deleteRoom/{id}',[ProductController::class,'deleteRoom']);
+    //
     Route::get('/getAllItems', [ProductController::class, 'getAllItems']);
     Route::post('/updateItem/{itemId}', [ProductController::class, 'updateItem']);
     Route::delete('/deleteItem/{itemId}', [ProductController::class, 'deleteItem']);
@@ -285,7 +289,9 @@ Route::middleware(['auth:sanctum', 'superManager'])->group(function () {
 
 //submanager:
 Route::middleware(['auth:sanctum', 'subManager'])->group(function () {
+    //
     Route::get('/getAllRooms2', [SubManagerControllerProductController::class, 'getAllRooms']);
+    //
     Route::get('/getAllItems2', [SubManagerControllerProductController::class, 'getAllItems']);
     Route::get('/GetAllOrders2', [SubManagerControllerPurchaseOrderController::class, 'getAllOrders']);
     //not
@@ -320,6 +326,9 @@ Route::middleware(['auth:sanctum', 'workshop.manager'])->group(function () {
     Route::put('/finish_order/{orderId}', [tempcontroller::class, 'markOrderAsComplete']);
     Route::get('/showZeroPriceAndTime', [tempcontroller::class, 'showZeroPriceAndTime']);
     Route::put('/update_price_time/{type}/{id}', [tempcontroller::class, 'updatePriceAndTime']);
+    Route::post('/updateItemCount/{itemId}',[tempcontroller::class,'updateItemCount']);
+    Route::post('/updateRoomCount/{roomId}',[tempcontroller::class,'updateRoomCount']);
+
 });
 
 

@@ -457,11 +457,50 @@ class ProductController extends Controller
     }
 
     public function getType()
-{
-    $itemTypes = ItemType::all();
-    return response()->json([
-        'item_types' => $itemTypes
-    ]);
-}
+    {
+        $itemTypes = ItemType::all();
+        return response()->json([
+            'item_types' => $itemTypes
+        ]);
+    }
 
+
+    public function deleteType($id)
+    {
+        $itemType = ItemType::find($id);
+
+        if (!$itemType) {
+            return response()->json([
+                'message' => 'Item type not found'
+            ], 404);
+        }
+
+        $itemType->delete();
+
+        return response()->json([
+            'message' => 'Item type deleted successfully'
+        ], 200);
+    }
+    public function deleteCategory($id)
+    {
+        $category = Category::find($id);
+
+        if (!$category) {
+            return response()->json([
+                'message' => 'Category not found'
+            ], 404);
+        }
+
+        if ($category->rooms()->count() > 0) {
+            return response()->json([
+                'message' => 'Cannot delete: this category has related rooms'
+            ], 400);
+        }
+
+        $category->delete();
+
+        return response()->json([
+            'message' => 'Category deleted successfully'
+        ], 200);
+    }
 }

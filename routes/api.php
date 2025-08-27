@@ -237,6 +237,9 @@ Route::middleware(['auth:sanctum', 'superManager'])->group(function () {
     Route::get('/getCategories', [ProductController::class, 'getAllCategories']);
     Route::get('/getTypes', [ProductController::class, 'getType']);
 
+    Route::delete('/deleteType/{id}',[ProductController::class,'deleteType']);
+    Route::delete('/deleteCategory/{id}',[ProductController::class,'deleteCategory']);
+
     
     Route::post('/addBalance/{customerId}', [UserController::class, 'addBalance']);
     //

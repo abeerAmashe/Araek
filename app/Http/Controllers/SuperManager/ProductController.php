@@ -80,7 +80,7 @@ class ProductController extends Controller
 
         return response()->json([
             'message' => 'Room created successfully',
-            'room' => $room->load('roomDetail')
+            'room' => $room->load('roomDetails')
         ], 201);
     }
     public function deleteRoom($id)
@@ -108,7 +108,7 @@ class ProductController extends Controller
             'item_type_id' => 'required|exists:item_types,id',
             'image_url' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'glb_url' => 'nullable|file|mimes:glb,bin|max:10240',
-            'thumbnail_url' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'thumbnail_url' => 'nullable|image|mimes:jpg,jpeg,png,webp',
             'wood_length' => 'nullable|numeric',
             'wood_width' => 'nullable|numeric',
             'wood_height' => 'nullable|numeric',
@@ -493,12 +493,17 @@ class ProductController extends Controller
                     'id' => $fabric->id,
                     'type' => $fabric->fabricType ? $fabric->fabricType->name : null,
                     'color' => $fabric->fabricColor ? $fabric->fabricColor->name : null,
+                    'fabric_color_id'=>$fabric->fabric_color_id,
+                    'fabric_type_id'=>$fabric->fabric_type_id,
                     'price_per_meter' => $fabric->price_per_meter,
                 ];
             });
 
-        return response()->json($fabrics);
+        return response()->json([
+            'fabric' => $fabrics
+        ]);
     }
+
     public function showWood()
     {
         $woods = Wood::with(['woodType', 'woodColor'])
@@ -508,12 +513,17 @@ class ProductController extends Controller
                     'id' => $wood->id,
                     'type' => $wood->woodType ? $wood->woodType->name : null,
                     'color' => $wood->woodColor ? $wood->woodColor->name : null,
+                    'wood_type_id'=>$wood->wood_type_id,
+                    'wood_color_id' => $wood->wood_color_id, 
                     'price_per_meter' => $wood->price_per_meter,
                 ];
             });
 
-        return response()->json($woods);
+        return response()->json([
+            'wood' => $woods
+        ]);
     }
+
     public function destroyWood($id)
     {
         $wood = Wood::findOrFail($id);

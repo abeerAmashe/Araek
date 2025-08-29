@@ -47,4 +47,13 @@ class PlaceCostController extends Controller
             'data' => $placeCost
         ]);
     }
+
+    public function index()
+    {
+        $places = PlaceCost::select('place', 'price')->get();
+
+        return response()->json([
+            'places' => $places
+        ]);
+    }
 }

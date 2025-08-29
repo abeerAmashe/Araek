@@ -595,7 +595,41 @@ class  CartController extends Controller
         $deliveryPrice = 0;
         $nearestBranch = null;
 
+        // if ($wantDelivery === 'yes') {
+        //     $deliveryRequest = new \Illuminate\Http\Request([
+        //         'address'   => $request->input('address'),
+        //         'latitude'  => $request->input('latitude'),
+        //         'longitude' => $request->input('longitude'),
+        //     ]);
+
+        //     $deliveryResponse = $this->getDeliveryPrice($deliveryRequest);
+        //     $responseData = $deliveryResponse->getData(true);
+
+        //     if ($deliveryResponse->getStatusCode() === 200) {
+        //         $deliveryPrice = $responseData['delivery_price'];
+        //     } else {
+        //         return response()->json(['message' => $responseData['message']]);
+        //     }
+        // } else {
+        //     $branchRequest = new \Illuminate\Http\Request([
+        //         'latitude'  => $request->input('latitude'),
+        //         'longitude' => $request->input('longitude'),
+        //     ]);
+
+        //     $branchResponse = $this->getNearestBranch($branchRequest);
+        //     $responseData = $branchResponse->getData(true);
+
+        //     if ($branchResponse->getStatusCode() === 200) {
+        //         $nearestBranch = $responseData['branch'];
+        //     } else {
+        //         return response()->json(['message' => $responseData['message']]);
+        //     }
+        // }
+        $deliveryPrice = 0;
+        $nearestBranch = null;
+
         if ($wantDelivery === 'yes') {
+            // حساب تكلفة التوصيل
             $deliveryRequest = new \Illuminate\Http\Request([
                 'address'   => $request->input('address'),
                 'latitude'  => $request->input('latitude'),
@@ -610,21 +644,23 @@ class  CartController extends Controller
             } else {
                 return response()->json(['message' => $responseData['message']]);
             }
-        } else {
-            $branchRequest = new \Illuminate\Http\Request([
-                'latitude'  => $request->input('latitude'),
-                'longitude' => $request->input('longitude'),
-            ]);
-
-            $branchResponse = $this->getNearestBranch($branchRequest);
-            $responseData = $branchResponse->getData(true);
-
-            if ($branchResponse->getStatusCode() === 200) {
-                $nearestBranch = $responseData['branch'];
-            } else {
-                return response()->json(['message' => $responseData['message']]);
-            }
         }
+
+        // جلب أقرب فرع (سواء كان delivery yes أو no)
+        $branchRequest = new \Illuminate\Http\Request([
+            'latitude'  => $request->input('latitude'),
+            'longitude' => $request->input('longitude'),
+        ]);
+
+        $branchResponse = $this->getNearestBranch($branchRequest);
+        $responseData = $branchResponse->getData(true);
+
+        if ($branchResponse->getStatusCode() === 200) {
+            $nearestBranch = $responseData['branch'];
+        } else {
+            return response()->json(['message' => $responseData['message']]);
+        }
+
 
         $priceAfterRabbonWithDelivery = $priceAfterRabbon + $deliveryPrice;
         $remainingAmountWithDelivery = $wantDelivery === 'yes' ? $priceAfterRabbonWithDelivery : null;
@@ -645,7 +681,7 @@ class  CartController extends Controller
             'price_after_rabbon'                 => $priceAfterRabbon,
             'price_after_rabbon_with_delivery'   => $wantDelivery === 'yes' ? $priceAfterRabbonWithDelivery : null,
             'remaining_amount_with_delivery'     => $remainingAmountWithDelivery,
-            'branch_id'                          => $wantDelivery === 'no' && $nearestBranch ? $nearestBranch['id'] : null,
+            'branch_id' => $nearestBranch ? $nearestBranch['id'] : null,
         ]);
 
 

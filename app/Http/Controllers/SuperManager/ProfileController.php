@@ -22,11 +22,12 @@ class ProfileController extends Controller
             'message' => 'Logged out from all sessions for Super Manager (GalleryManager)'
         ]);
     }
-      public function getGallaryManagerInfo()
+
+    public function getGallaryManagerInfo()
     {
         $user = auth()->user();
 
-        $manager = GallaryManager::with(['user', 'branch'])
+        $manager = GallaryManager::with(['user'])
             ->where('user_id', $user->id)
             ->first();
 
@@ -38,7 +39,6 @@ class ProfileController extends Controller
             'full_name' => $manager->user->name,
             'phone' => $manager->user->phone ?? 'null',
             'email' => $manager->user->email,
-            'branch_address' => optional($manager->branch->first())->address ?? 'not found',
         ]);
     }
 }

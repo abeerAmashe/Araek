@@ -83,27 +83,41 @@ class BranchManagerController extends Controller
     }
 
 
-    public function update(Request $request, $id)
-    {
-        $request->validate([
-            'name'      => 'string|max:255',
-            'email'     => 'email|unique:users,email,' . $id,
-            'phone'     => 'string|max:20',
-        ]);
+  public function update(Request $request, $id)
+{
+    $subManager = SubManager::with('user')->findOrFail($id);
 
-        $manager = SubManager::findOrFail($id);
-
-        $manager->update([
-            'name'    => $request->name,
-            'email'   => $request->email,
-            'phone'   => $request->phone ?? $manager->phone,
-        ]);
-
-        return response()->json([
-            'message' => 'Done !',
-            'manager' => $manager
-        ]);
+    if (!$subManager->user) {
+        return response()->json(['message' => 'User not found for this SubManager'], 404);
     }
+
+    $request->validate([
+        'name'  => 'nullable|string|max:255',
+        'email' => 'nullable|email|unique:users,email,' . $subManager->user->id, 
+        'phone' => 'nullable|string|max:20',
+    ]);
+
+    \DB::transaction(function () use ($request, $subManager) {
+        // تحديث جدول users
+        $subManager->user->update([
+            'name'  => $request->input('name', $subManager->user->name),
+            'email' => $request->input('email', $subManager->user->email),
+        ]);
+
+        // تحديث جدول sub_managers
+        $subManager->update([
+            'phone' => $request->input('phone', $subManager->phone),
+        ]);
+    });
+
+    return response()->json([
+        'message' => 'Done!',
+        'manager' => $subManager->load('user')
+    ]);
+}
+
+
+
 
     public function delete($id)
     {

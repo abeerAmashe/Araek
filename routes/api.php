@@ -51,15 +51,21 @@ Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logo
 
 // User Controllers
 //cartController:
+
 Route::middleware('auth:sanctum')->group(function () {
+    //done(notification)
     Route::post('/addtocart2', [CartController::class, 'addToCart2']);
+    //done
     Route::get('/cart_details', [CartController::class, 'getCartDetails']);
     //response
     Route::post('/cart_remove-partial', [CartController::class, 'removePartialFromCart']);
     Route::delete('/deleteCart', [CartController::class, 'deleteCart']);
     //Order:
+    //done
     Route::post('/getDeliveryPrice', [CartController::class, 'getDeliveryPrice']);
+    //done
     Route::post('/nearest-branch', [CartController::class, 'getNearestBranch']);
+    //done
     Route::post('confirmCart', [CartController::class, 'confirmCart']);
 });
 
@@ -126,13 +132,13 @@ Route::get('/getTrending', [RecommendationController::class, 'getTrending']);
 // Route::get('/trendingItems',[ItemController::class,'trendingItems']);
 //عرض العناصر الاكثر مبيعا
 // Route::get('/trendingRooms',[RoomController::class,'trendingRooms']);
-//.
+//done
 Route::get('/showCategories', [CustomerController::class, 'getAllCategories']);
 //
 Route::get('/getRoomsByCategory/{category_id}', [RoomController::class, 'getRoomsByCategory']);
 //
 Route::get('/getItemByRoom/{room_id}', [RoomController::class, 'getRoomItems']);
-//.
+//done
 Route::get('/showFerniture', [RoomController::class, 'showFurniture']);
 //.
 //.
@@ -234,71 +240,100 @@ Route::middleware('auth:sanctum')->group(function () {
 
 //super Manager:
 Route::middleware(['auth:sanctum', 'superManager'])->group(function () {
+    //done
     Route::delete('/delete_wood/{id}', [ProductController::class, 'destroyWood']);
+    //done
     Route::delete('/delete_fabric/{id}', [ProductController::class, 'destroyFabric']);
+    //done
     Route::get('/showFabric', [Productcontroller::class, 'showFabric']);
+    //done
     Route::get('/showWood', [ProductController::class, 'showWood']);
-
-
-
-
-
+    //done
     Route::get('/getCategories', [ProductController::class, 'getAllCategories']);
+    //done
     Route::get('/getTypes', [ProductController::class, 'getType']);
-
+    //done
     Route::delete('/deleteType/{id}', [ProductController::class, 'deleteType']);
+    //done
     Route::delete('/deleteCategory/{id}', [ProductController::class, 'deleteCategory']);
-
-
+    //notfinally
     Route::post('/addBalance/{customerId}', [UserController::class, 'addBalance']);
-    //
+    //done
     Route::get('/getAllRooms', [ProductController::class, 'getAllRooms']);
+    //done
     Route::delete('/deleteRoom/{id}', [ProductController::class, 'deleteRoom']);
-    //
+    //done
     Route::get('/getAllItems', [ProductController::class, 'getAllItems']);
+    //done
     Route::post('/updateItem/{itemId}', [ProductController::class, 'updateItem']);
+    //done
     Route::delete('/deleteItem/{itemId}', [ProductController::class, 'deleteItem']);
+    //done
     Route::post('/updateRoom/{roomId}', [ProductController::class, 'updateRoom']);
+    //done
     Route::post('/updateFabricPrice/{fabricTypeId}', [ProductController::class, 'updateFabricPrice']);
+    //done
     Route::post('/updateWoodPrice/{woodTypeId}', [ProductController::class, 'updateWoodPrice']);
+    //done
     Route::post('/storeItemType', [ProductController::class, 'storeItemType']);
+    //done
     Route::post('/storeCategory', [ProductController::class, 'storeCategory']);
+    //done
     Route::post('/storeItem', [ProductController::class, 'storeItem']);
+    //done
     Route::post('/storeRoom', [ProductController::class, 'storeRoom']);
+    //done
     Route::post('/storeOptions/{roomId}', [ProductController::class, 'storeOptions']);
+    //done
     Route::post('/storeWood', [ProductController::class, 'storeWood']);
+    //done
     Route::post('/storeFabric', [ProductController::class, 'storeFabric']);
+    //notfinally
     Route::get('/GetAllOrders', [SupermanagerPurchaseOrderController::class, 'getAllOrders']);
+    //done
     Route::post('/uploadGlb/{id}', [ItemController::class, 'uploadGlb']);
     //profile:
+    //done
     Route::post('/super-manager/logout', [SupermanagerProfileController::class, 'logoutGalleryManager']);
-    //gall
+    //done
     Route::get('/gallary-manager-info', [SupermanagerProfileController::class, 'getGallaryManagerInfo']);
     //users:
+    //notfinally
     Route::get('/getCustomerList', [UserController::class, 'getCustomers']);
+    //notfinally
     Route::get('/getCustomersWithOrders/{customer_id}', [UserController::class, 'getCustomerOrders']);
     //diagrams:
+    //notfinally
     Route::get('/available_count', [DiagramController::class, 'available_count']);
+    //notfinally
     Route::get('/sales-details', [DiagramController::class, 'sales_details']);
+    //notfinally
     Route::get('/get_current_order', [DiagramController::class, 'getInProgressOrders']);
+    //notfinally
     Route::get('/dashboard-stats', [DiagramController::class, 'getDashboardStats']);
     // Route::get('/getOrdersStatusPercentages', [DiagramController::class, 'getOrdersStatusPercentages']);
     // Route::get('/calculateMonthlyProfit', [DiagramController::class, 'calculateMonthlyProfit']);
+    //notfinally
     Route::get('/getTodaysNewData', [DiagramController::class, 'getTodaysNewData']);
     //Branch:    
+    
     Route::post('/branches/assign-manager', [BranchController::class, 'assignManagerToBranch']);
     Route::get('/branch_info/{branchId}', [BranchController::class, 'getBranchDetails']);
     //not UI
     Route::get('/branches', [BranchController::class, 'index']);
     Route::get('/branches_with_managers', [BranchController::class, 'getBranchesWithManagers']);
+    //done
     Route::post('/add_branch', [BranchController::class, 'addNewBranch']);
     //not UI
     Route::delete('/deleteBranch/{branch_id}', [BranchController::class, 'delete']);
     //BranchManager:
+    //done
     Route::post('/add_branch_manager', [BranchManagerController::class, 'store']);
+    //done
     Route::get('/get_branch_managers', [BranchManagerController::class, 'getBranchManagers']);
     Route::delete('/delete_branchmanager/{id}', [BranchManagerController::class, 'delete']);
-    Route::put('/edit_branchManager_info/{id}', [BranchManagerController::class, 'update']);
+    
+    Route::post('/edit_branchManager_info/{id}', [BranchManagerController::class, 'update']);
     Route::get('/get_branchmanager_info/{managerId}', [BranchManagerController::class, 'getBranchManagerDetails']);
     //Complaint
     Route::get('/get_all_complaint', [SupermanagerComplaintController::class, 'index']);
@@ -327,19 +362,28 @@ Route::middleware(['auth:sanctum', 'subManager'])->group(function () {
 //deliveryManager:
 Route::middleware(['auth:sanctum', 'deliveryManager'])->group(function () {
     //placecost
+    //done
     Route::post('/place_cost', [PlaceCostController::class, 'store']);
+    //done
     Route::put('/update_place_cost/{place}', [PlaceCostController::class, 'update']);
+    //done
+    Route::get('/getPlaces',[PlaceCostController::class,'index']);
+
     //order
+    //done
     Route::get('/delivery_orders', [DeliverymanagerOrderController::class, 'getDeliveryOrders']);
+    //done
     Route::put('/delivery-orders/{orderId}', [DeliverymanagerOrderController::class, 'updateDeliveryStatus']);
+    
     Route::get('/order-schedules', [DeliverymanagerOrderController::class, 'getOrderSchedules']);
     //available time
+    //done
     Route::post('/addAvailableTime', [AvailabilityController::class, 'store']);
+    //done
     Route::post('/updateAvailablityTime', [AvailabilityController::class, 'update']);
 });
 
 Route::middleware(['auth:sanctum', 'workshop.manager'])->group(function () {
-
     Route::put('/finish_order/{orderId}', [tempcontroller::class, 'markOrderAsComplete']);
     Route::get('/showZeroPriceAndTime', [tempcontroller::class, 'showZeroPriceAndTime']);
     Route::put('/update_price_time/{type}/{id}', [tempcontroller::class, 'updatePriceAndTime']);

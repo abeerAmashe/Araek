@@ -8,17 +8,29 @@ use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
-        public function getDeliveryOrders()
-    {
-        $orders = PurchaseOrder::where('want_delivery', true)
-            ->with(['customer', 'itemOrders', 'roomOrders'])
-            ->get();
+    public function getDeliveryOrders()
+{
+    $orders = PurchaseOrder::where('want_delivery', 'yes') // تأكد من استخدام القيمة الصحيحة 'yes'
+        ->with(['customer.user:id,name', 'itemOrders', 'roomOrders']) // تحميل العلاقة بين Customer و User
+        ->get()
+        ->map(function ($order) {
+            return [
+                'purchase_order_id' => $order->id, // إرجاع purchase_order_id
+                'customer_id' => $order->customer_id, // إرجاع customer_id
+                'customer_name' => $order->customer->user->name, // إرجاع اسم الزبون من User
+                'customer_phone' => $order->customer->phone_number, // إرجاع رقم موبايل الزبون من Customer
+                'delivery_address' => $order->address, // إرجاع عنوان التوصيل
+            ];
+        });
 
-        return response()->json([
-            'message' => 'want delivery:',
-            'data' => $orders
-        ]);
-    }
+    return response()->json([
+        'message' => 'want delivery:',
+        'data' => $orders
+    ]);
+}
+
+
+
 
     public function updateDeliveryStatus($orderId)
     {

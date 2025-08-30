@@ -917,85 +917,165 @@ class  CartController extends Controller
     //     return null;
     // }
 
+    // protected function findAvailableDeliveryTime()
+    // {
+    //     $user = auth()->user();
+    //     $customerId = $user->customer->id;
+
+    //     $purchaseOrder = PurchaseOrder::where('customer_id', $customerId)
+    //         ->where('status', 'complete')
+    //         ->first();
+
+    //     if (!$purchaseOrder) {
+    //         return response()->json([
+    //             'message' => 'there is no completed order'
+    //         ], 404);
+    //     }
+
+    //     if ($purchaseOrder->is_paid !== 'paid') {
+    //         return response()->json([
+    //             'message' => 'you should pay before that'
+    //         ], 400);
+    //     }
+
+    //     // $customerTimes = AvailableTime::where('customer_id', $customerId)
+    //     //     ->pluck('available_at');
+    //     $customerTimes = request()->input('delivery_time'); // إدخال الوقت من الـ API Request
+
+    //     $companyAvailability = DeliveryCompanyAvailability::get()
+    //         ->keyBy('day_of_week');
+
+    //     $bookedTimes = PurchaseOrder::whereNotNull('delivery_time')
+    //         ->pluck('delivery_time')
+    //         ->map(fn($time) => Carbon::parse($time)->format('Y-m-d H:i'))
+    //         ->toArray();
+
+    //     foreach ($customerTimes as $time) {
+    //         $carbonTime = Carbon::parse($time);
+    //         $formattedTime = $carbonTime->format('Y-m-d H:i');
+    //         $dayName = strtolower($carbonTime->format('l'));
+
+    //         if (!$companyAvailability->has($dayName)) {
+    //             continue;
+    //         }
+
+    //         $startTime = $companyAvailability[$dayName]->start_time;
+    //         $endTime = $companyAvailability[$dayName]->end_time;
+    //         $timeOnly = $carbonTime->format('H:i:s');
+
+    //         if ($timeOnly >= $startTime && $timeOnly <= $endTime) {
+    //             if (!in_array($formattedTime, $bookedTimes)) {
+
+    //                 if ($user->userFcmTokens->exists()) {
+    //                     try {
+    //                         FirebaseNotification::setTitle('Delivery Appointment Scheduled')
+    //                             ->setBody("A delivery appointment has been scheduled for your order: {$formattedTime}")
+    //                             ->setUsers(collect([$user]))
+    //                             ->setData([
+    //                                 'order_id' => $purchaseOrder->id,
+    //                                 'delivery_time' => $formattedTime,
+    //                                 'type' => 'delivery_scheduled'
+    //                             ])
+    //                             ->push();
+    //                     } catch (\Exception $e) {
+    //                         Log::error('Failed to send delivery appointment notification', [
+    //                             'user_id' => $user->id,
+    //                             'error' => $e->getMessage(),
+    //                         ]);
+    //                     }
+    //                 }
+    //                 $purchaseOrder->update([
+    //                     'delivery_time'   => $formattedTime,
+    //                     'delivery_status' => 'confirmed',
+    //                 ]);
+
+
+    //                 return response()->json([
+    //                     'message' => 'Done!',
+    //                     'delivery_time' => $formattedTime
+    //                 ]);
+    //             }
+    //         }
+    //     }
+
+    //     return response()->json([
+    //         'message' => 'there is no time,please enter another available time!'
+    //     ], 404);
+    // }
+
     protected function findAvailableDeliveryTime()
-    {
-        $user = auth()->user();
-        $customerId = $user->customer->id;
+{
+    $user = auth()->user();
+    $customerId = $user->customer->id;
 
-        $purchaseOrder = PurchaseOrder::where('customer_id', $customerId)
-            ->where('status', 'complete')
-            ->first();
+    $purchaseOrder = PurchaseOrder::where('customer_id', $customerId)
+        ->where('status', 'complete')
+        ->first();
 
-        if (!$purchaseOrder) {
-            return response()->json([
-                'message' => 'there is no completed order'
-            ], 404);
-        }
-
-        if ($purchaseOrder->is_paid !== 'paid') {
-            return response()->json([
-                'message' => 'you should pay before that'
-            ], 400);
-        }
-
-        $customerTimes = AvailableTime::where('customer_id', $customerId)
-            ->pluck('available_at');
-
-        $companyAvailability = DeliveryCompanyAvailability::get()
-            ->keyBy('day_of_week');
-
-        $bookedTimes = PurchaseOrder::whereNotNull('delivery_time')
-            ->pluck('delivery_time')
-            ->map(fn($time) => Carbon::parse($time)->format('Y-m-d H:i'))
-            ->toArray();
-
-        foreach ($customerTimes as $time) {
-            $carbonTime = Carbon::parse($time);
-            $formattedTime = $carbonTime->format('Y-m-d H:i');
-            $dayName = strtolower($carbonTime->format('l'));
-
-            if (!$companyAvailability->has($dayName)) {
-                continue;
-            }
-
-            $startTime = $companyAvailability[$dayName]->start_time;
-            $endTime = $companyAvailability[$dayName]->end_time;
-            $timeOnly = $carbonTime->format('H:i:s');
-
-            if ($timeOnly >= $startTime && $timeOnly <= $endTime) {
-                if (!in_array($formattedTime, $bookedTimes)) {
-
-                    if ($user->userFcmTokens->exists()) {
-                        try {
-                            FirebaseNotification::setTitle('Delivery Appointment Scheduled')
-                                ->setBody("A delivery appointment has been scheduled for your order: {$formattedTime}")
-                                ->setUsers(collect([$user]))
-                                ->setData([
-                                    'order_id' => $purchaseOrder->id,
-                                    'delivery_time' => $formattedTime,
-                                    'type' => 'delivery_scheduled'
-                                ])
-                                ->push();
-                        } catch (\Exception $e) {
-                            Log::error('Failed to send delivery appointment notification', [
-                                'user_id' => $user->id,
-                                'error' => $e->getMessage(),
-                            ]);
-                        }
-                    }
-
-                    return response()->json([
-                        'message' => 'Done!',
-                        'delivery_time' => $formattedTime
-                    ]);
-                }
-            }
-        }
-
+    if (!$purchaseOrder) {
         return response()->json([
-            'message' => 'there is no time,please enter another available time!'
+            'message' => 'there is no completed order'
         ], 404);
     }
+
+    if ($purchaseOrder->is_paid !== 'paid') {
+        return response()->json([
+            'message' => 'you should pay before that'
+        ], 400);
+    }
+
+    // الحصول على قائمة الأوقات المتاحة التي أرسلها الزبون
+    $customerTimes = request()->input('available_times');  // قائمة الأوقات المتاحة
+
+    if (empty($customerTimes)) {
+        return response()->json([
+            'message' => 'Please provide a list of available times.'
+        ], 400);
+    }
+
+    $companyAvailability = DeliveryCompanyAvailability::get()
+        ->keyBy('day_of_week');
+
+    $bookedTimes = PurchaseOrder::whereNotNull('delivery_time')
+        ->pluck('delivery_time')
+        ->map(fn($time) => Carbon::parse($time)->format('Y-m-d H:i'))
+        ->toArray();
+
+    foreach ($customerTimes as $time) {
+        $carbonTime = Carbon::parse($time);
+        $formattedTime = $carbonTime->format('Y-m-d H:i');
+        $dayName = strtolower($carbonTime->format('l'));
+
+        if (!$companyAvailability->has($dayName)) {
+            continue;
+        }
+
+        $startTime = $companyAvailability[$dayName]->start_time;
+        $endTime = $companyAvailability[$dayName]->end_time;
+        $timeOnly = $carbonTime->format('H:i:s');
+
+        if ($timeOnly >= $startTime && $timeOnly <= $endTime) {
+            if (!in_array($formattedTime, $bookedTimes)) {
+                // عملية إرسال الإشعار وتحديث الحالة هنا...
+
+                $purchaseOrder->update([
+                    'delivery_time'   => $formattedTime,
+                    'delivery_status' => 'confirmed',
+                ]);
+
+                return response()->json([
+                    'message' => 'Done!',
+                    'delivery_time' => $formattedTime
+                ]);
+            }
+        }
+    }
+
+    return response()->json([
+        'message' => 'No available time found from the list. Please try again.'
+    ], 404);
+}
+
 
 
     public function getNearestBranch(Request $request)
@@ -1081,7 +1161,7 @@ class  CartController extends Controller
             return response()->json(['message' => 'Order not found'], 404);
         }
 
-        if ($order->is_paid === 'done') {
+        if ($order->is_paid === 'paid') {
             return response()->json(['message' => 'Order already fully paid'], 200);
         }
 
@@ -1111,7 +1191,7 @@ class  CartController extends Controller
         $managerWallet->save();
 
         $order->update([
-            'is_paid' => 'done'
+            'is_paid' => 'paid'
         ]);
 
         return response()->json([

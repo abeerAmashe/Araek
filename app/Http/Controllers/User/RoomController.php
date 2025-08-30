@@ -349,42 +349,44 @@ class RoomController extends Controller
     }
 
     public function getRoomItems($room_id)
-    {
-        $room = Room::with([
-            'items.itemDetail',
-            'items.likes',
-            'items.ratings'
-        ])->find($room_id);
+{
+    $room = Room::with([
+        'items.itemDetail',
+        'items.likes',
+        'items.ratings'
+    ])->find($room_id);
 
-        if (!$room) {
-            return response()->json(['message' => 'room not found'], 200);
-        }
-
-        return response()->json([
-            'room' => [
-                'id' => $room->id,
-                'name' => $room->name,
-                'description' => $room->description,
-                'price' => $room->price,
-                'items' => $room->items->map(function ($item) {
-                    return [
-                        'id' => $item->id,
-                        'name' => $item->name,
-                        'price' => $item->price,
-                        'time' => $item->time,
-                        'wood_id' => optional($item->itemDetail)->wood_id,
-                        'fabric_id' => optional($item->itemDetail)->fabric_id,
-                        'wood_length' => optional($item->itemDetail)->wood_length,
-                        'wood_width' => optional($item->itemDetail)->wood_width,
-                        'wood_height' => optional($item->itemDetail)->wood_height,
-                        'likes_count' => $item->likes->count(),
-                        'average_rating' => (float) round($item->ratings->avg('rate'), 1),
-                        'feedbacks' => $item->ratings->pluck('feedback')->filter()->values()
-                    ];
-                })
-            ]
-        ], 200);
+    if (!$room) {
+        return response()->json(['message' => 'room not found'], 200);
     }
+
+    return response()->json([
+        'room' => [
+            'id' => $room->id,
+            'name' => $room->name,
+            'description' => $room->description,
+            'price' => $room->price,
+            'items' => $room->items->map(function ($item) {
+                $itemDetail = $item->itemDetail->first();  // تعديل هنا لاستخدام first()
+                return [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'price' => $item->price,
+                    'time' => $item->time,
+                    'wood_id' => optional($itemDetail)->wood_id,
+                    'fabric_id' => optional($itemDetail)->fabric_id,
+                    'wood_length' => optional($itemDetail)->wood_length,
+                    'wood_width' => optional($itemDetail)->wood_width,
+                    'wood_height' => optional($itemDetail)->wood_height,
+                    'likes_count' => $item->likes->count(),
+                    'average_rating' => (float) round($item->ratings->avg('rate'), 1),
+                    'feedbacks' => $item->ratings->pluck('feedback')->filter()->values()
+                ];
+            })
+        ]
+    ], 200);
+}
+
 
 
     public function getRoomDetails(Request $request, $id)

@@ -58,7 +58,9 @@ Route::middleware('auth:sanctum')->group(function () {
     //done
     Route::get('/cart_details', [CartController::class, 'getCartDetails']);
     //response
+    //done
     Route::post('/cart_remove-partial', [CartController::class, 'removePartialFromCart']);
+    //done
     Route::delete('/deleteCart', [CartController::class, 'deleteCart']);
     //Order:
     //done
@@ -71,6 +73,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 //PurchaseOrderController
 Route::middleware('auth:sanctum')->group(function () {
+
     Route::get('/getOrdersByCustomer', [PurchaseOrderController::class, 'getOrdersByCustomer']);
     Route::get('/orders_details/{orderId}', [PurchaseOrderController::class, 'getOrderDetails']);
     Route::post('/orders_cancel/{orderId}', [PurchaseOrderController::class, 'cancelOrder']);
@@ -191,9 +194,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/like_toggle', [FavoriteController::class, 'toggleLike']);
     //Ali not
     Route::get('/customer_likes', [FavoriteController::class, 'getCustomerLikes']);
-    //.
+    //done
     Route::post('/complaints_submit', [ComplaintController::class, 'submitComplaint']);
-    //.
+    //done
     Route::get('/complaints_customer', [ComplaintController::class, 'getCustomerComplaints']);
     //غالباً لازم يكون ضمني مع تأكيد الطلب
     //.
@@ -201,7 +204,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Route::post('/process-payment', [CustomerController::class, 'processPayment']);
 
-    // Route::get('/availableTime', [HelperController::class, 'findAvailableDeliveryTime']);
+    Route::get('/availableTime', [CartController::class, 'findAvailableDeliveryTime']);
+    //done
+    Route::post('/payRemainingAmount/{orderId}', [CartController::class, 'payRemainingAmount']);
     //price
 
     //price
@@ -240,7 +245,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 //super Manager:
 Route::middleware(['auth:sanctum', 'superManager'])->group(function () {
-    //done
+    //done    
     Route::delete('/delete_wood/{id}', [ProductController::class, 'destroyWood']);
     //done
     Route::delete('/delete_fabric/{id}', [ProductController::class, 'destroyFabric']);
@@ -256,7 +261,7 @@ Route::middleware(['auth:sanctum', 'superManager'])->group(function () {
     Route::delete('/deleteType/{id}', [ProductController::class, 'deleteType']);
     //done
     Route::delete('/deleteCategory/{id}', [ProductController::class, 'deleteCategory']);
-    //notfinally
+    //done
     Route::post('/addBalance/{customerId}', [UserController::class, 'addBalance']);
     //done
     Route::get('/getAllRooms', [ProductController::class, 'getAllRooms']);
@@ -288,7 +293,7 @@ Route::middleware(['auth:sanctum', 'superManager'])->group(function () {
     Route::post('/storeWood', [ProductController::class, 'storeWood']);
     //done
     Route::post('/storeFabric', [ProductController::class, 'storeFabric']);
-    //notfinally
+    //done
     Route::get('/GetAllOrders', [SupermanagerPurchaseOrderController::class, 'getAllOrders']);
     //done
     Route::post('/uploadGlb/{id}', [ItemController::class, 'uploadGlb']);
@@ -298,44 +303,49 @@ Route::middleware(['auth:sanctum', 'superManager'])->group(function () {
     //done
     Route::get('/gallary-manager-info', [SupermanagerProfileController::class, 'getGallaryManagerInfo']);
     //users:
-    //notfinally
+    //done
     Route::get('/getCustomerList', [UserController::class, 'getCustomers']);
-    //notfinally
+    //done
     Route::get('/getCustomersWithOrders/{customer_id}', [UserController::class, 'getCustomerOrders']);
     //diagrams:
-    //notfinally
+    //done
     Route::get('/available_count', [DiagramController::class, 'available_count']);
-    //notfinally
+    //done
     Route::get('/sales-details', [DiagramController::class, 'sales_details']);
-    //notfinally
+    //cancel
     Route::get('/get_current_order', [DiagramController::class, 'getInProgressOrders']);
-    //notfinally
+    //done
     Route::get('/dashboard-stats', [DiagramController::class, 'getDashboardStats']);
     // Route::get('/getOrdersStatusPercentages', [DiagramController::class, 'getOrdersStatusPercentages']);
     // Route::get('/calculateMonthlyProfit', [DiagramController::class, 'calculateMonthlyProfit']);
-    //notfinally
+    //cancel
     Route::get('/getTodaysNewData', [DiagramController::class, 'getTodaysNewData']);
     //Branch:    
-    
+    //done
     Route::post('/branches/assign-manager', [BranchController::class, 'assignManagerToBranch']);
+    //done
     Route::get('/branch_info/{branchId}', [BranchController::class, 'getBranchDetails']);
-    //not UI
+    //done
     Route::get('/branches', [BranchController::class, 'index']);
+    //done
     Route::get('/branches_with_managers', [BranchController::class, 'getBranchesWithManagers']);
     //done
     Route::post('/add_branch', [BranchController::class, 'addNewBranch']);
-    //not UI
+    //done
     Route::delete('/deleteBranch/{branch_id}', [BranchController::class, 'delete']);
     //BranchManager:
     //done
     Route::post('/add_branch_manager', [BranchManagerController::class, 'store']);
     //done
     Route::get('/get_branch_managers', [BranchManagerController::class, 'getBranchManagers']);
+    //done
     Route::delete('/delete_branchmanager/{id}', [BranchManagerController::class, 'delete']);
-    
+    //done
     Route::post('/edit_branchManager_info/{id}', [BranchManagerController::class, 'update']);
+    //done
     Route::get('/get_branchmanager_info/{managerId}', [BranchManagerController::class, 'getBranchManagerDetails']);
     //Complaint
+    //done
     Route::get('/get_all_complaint', [SupermanagerComplaintController::class, 'index']);
 });
 
@@ -367,40 +377,45 @@ Route::middleware(['auth:sanctum', 'deliveryManager'])->group(function () {
     //done
     Route::put('/update_place_cost/{place}', [PlaceCostController::class, 'update']);
     //done
-    Route::get('/getPlaces',[PlaceCostController::class,'index']);
+    Route::get('/getPlaces', [PlaceCostController::class, 'index']);
 
     //order
     //done
     Route::get('/delivery_orders', [DeliverymanagerOrderController::class, 'getDeliveryOrders']);
     //done
     Route::put('/delivery-orders/{orderId}', [DeliverymanagerOrderController::class, 'updateDeliveryStatus']);
-    
+
     Route::get('/order-schedules', [DeliverymanagerOrderController::class, 'getOrderSchedules']);
     //available time
     //done
     Route::post('/addAvailableTime', [AvailabilityController::class, 'store']);
     //done
     Route::post('/updateAvailablityTime', [AvailabilityController::class, 'update']);
+
+    Route::get('/getAvailableTime',[AvailabilityController::class,'index']);
 });
 
 Route::middleware(['auth:sanctum', 'workshop.manager'])->group(function () {
+    //done
     Route::put('/finish_order/{orderId}', [tempcontroller::class, 'markOrderAsComplete']);
+    //done
     Route::get('/showZeroPriceAndTime', [tempcontroller::class, 'showZeroPriceAndTime']);
+    //done
     Route::put('/update_price_time/{type}/{id}', [tempcontroller::class, 'updatePriceAndTime']);
+    //done
     Route::post('/updateItemCount/{itemId}', [tempcontroller::class, 'updateItemCount']);
+    //done
     Route::post('/updateRoomCount/{roomId}', [tempcontroller::class, 'updateRoomCount']);
 });
 
-
-
-
 //Ali Mossa:
 Route::middleware(['auth:sanctum', 'superManager'])->group(function () {
-
+    //done
     Route::get('/getOrdersStatusPercentages', [DiagramController::class, 'getOrdersStatusPercentages']);
+    //done
     Route::get('/calculateMonthlyProfit', [DiagramController::class, 'calculateMonthlyProfit']);
 });
-
+//done
 Route::middleware(['auth:sanctum', 'subManager'])->group(function () {
 
     Route::get('/getOrdersStatusPercentages2', [SubManagerControllerDiagramController::class, 'getOrdersStatusPercentages']);

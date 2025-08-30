@@ -41,4 +41,15 @@ class AvailabilityController extends Controller
 
         return response()->json(['message' => 'All availabilities replaced successfully']);
     }
+
+    public function index()
+{
+    $availabilities = DeliveryCompanyAvailability::all();
+
+    return response()->json([
+        'message' => 'Available delivery times retrieved successfully',
+        'data' => $availabilities
+    ]);
+}
+
 }

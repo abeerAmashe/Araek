@@ -121,67 +121,70 @@ class tempcontroller extends Controller
 
 
     public function showZeroPriceAndTime()
-    {
-        $items = Item::where('price', 0)
-            ->where('time', 0)
-            ->with([
-                'itemDetail' => function ($query) {
-                    $query->with(['wood', 'fabric']);
-                }
-            ])
-            ->get();
+{
+    $items = Item::where('price', 0)
+        ->where('time', 0)
+        ->with([
+            'itemDetail' => function ($query) {
+                $query->with(['wood', 'fabric']);
+            }
+        ])
+        ->get();
 
-        $rooms = Room::where('price', 0)
-            ->where('time', 0)
-            ->with([
-                'roomDetails' => function ($query) {
-                    $query->with(['wood', 'fabric']);
-                }
-            ])
-            ->get();
+    $rooms = Room::where('price', 0)
+        ->where('time', 0)
+        ->with([
+            'roomDetails' => function ($query) {
+                $query->with(['wood', 'fabric']);
+            }
+        ])
+        ->get();
 
-        return response()->json([
-            'items' => $items->map(function ($item) {
-                return [
-                    'id' => $item->id,
-                    'name' => $item->name,
-                    'price' => $item->price,
-                    'time' => $item->time,
-                    'wood' => $item->itemDetail->map(function ($itemDetail) {
-                        return [
-                            'wood_type' => $itemDetail->wood->WoodType->name ?? null,
-                            'wood_color' => $itemDetail->wood->WoodColor->name ?? null
-                        ];
-                    }),
-                    'fabric' => $item->itemDetail->map(function ($itemDetail) {
-                        return [
-                            'fabric_type' => $itemDetail->fabric->fabricType->name ?? null,
-                            'fabric_color' => $itemDetail->fabric->fabricColor->name ?? null
-                        ];
-                    })
-                ];
-            }),
-            'rooms' => $rooms->map(function ($room) {
-                // التأكد من أن roomDetails تحتوي على تفاصيل
-                $roomDetail = $room->roomDetails->first(); // اختيار أول تفصيل للخشب والقماش
+    return response()->json([
+        'items' => $items->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'name' => $item->name,
+                'price' => $item->price,
+                'time' => $item->time,
+                'count' => $item->count, // إضافة count هنا
+                'wood' => $item->itemDetail->map(function ($itemDetail) {
+                    return [
+                        'wood_type' => $itemDetail->wood->WoodType->name ?? null,
+                        'wood_color' => $itemDetail->wood->WoodColor->name ?? null
+                    ];
+                }),
+                'fabric' => $item->itemDetail->map(function ($itemDetail) {
+                    return [
+                        'fabric_type' => $itemDetail->fabric->fabricType->name ?? null,
+                        'fabric_color' => $itemDetail->fabric->fabricColor->name ?? null
+                    ];
+                })
+            ];
+        }),
+        'rooms' => $rooms->map(function ($room) {
+            // التأكد من أن roomDetails تحتوي على تفاصيل
+            $roomDetail = $room->roomDetails->first(); // اختيار أول تفصيل للخشب والقماش
 
-                return [
-                    'id' => $room->id,
-                    'name' => $room->name,
-                    'price' => $room->price,
-                    'time' => $room->time,
-                    'wood' => $roomDetail ? [
-                        'type' => $roomDetail->wood->WoodType->name ?? null,
-                        'color' => $roomDetail->wood->WoodColor->name ?? null
-                    ] : null,
-                    'fabric' => $roomDetail ? [
-                        'type' => $roomDetail->fabric->fabricType->name ?? null,
-                        'color' => $roomDetail->fabric->fabricColor->name ?? null
-                    ] : null
-                ];
-            })
-        ]);
-    }
+            return [
+                'id' => $room->id,
+                'name' => $room->name,
+                'price' => $room->price,
+                'time' => $room->time,
+                'count' => $room->count, // إضافة count هنا
+                'wood' => $roomDetail ? [
+                    'type' => $roomDetail->wood->WoodType->name ?? null,
+                    'color' => $roomDetail->wood->WoodColor->name ?? null
+                ] : null,
+                'fabric' => $roomDetail ? [
+                    'type' => $roomDetail->fabric->fabricType->name ?? null,
+                    'color' => $roomDetail->fabric->fabricColor->name ?? null
+                ] : null
+            ];
+        })
+    ]);
+}
+
 
 
     public function showInProgressOrders()

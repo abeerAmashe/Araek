@@ -10,7 +10,7 @@ class UserController extends Controller
 {
     public function getCustomers()
     {
-        $customers = Customer::with('user:id,name,email')
+        $customers = Customer::with(['user:id,name,email', 'user.wallets:id,user_id,balance'])
             ->get(['id', 'user_id', 'profile_image']);
 
         $data = $customers->map(function ($customer) {
@@ -19,6 +19,7 @@ class UserController extends Controller
                 'name' => $customer->user->name ?? null,
                 'email' => $customer->user->email ?? null,
                 'profile_image' => $customer->profile_image,
+                'balance' => $customer->user->wallets->first()->balance ?? 0, // Assuming one wallet per user
             ];
         });
 
@@ -27,6 +28,7 @@ class UserController extends Controller
             'customers' => $data
         ], 200);
     }
+
 
     public function getCustomerOrders($customer_id)
     {

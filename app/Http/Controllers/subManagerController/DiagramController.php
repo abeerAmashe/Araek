@@ -106,32 +106,41 @@ class DiagramController extends Controller
     }
 
     public function getOrdersStatusPercentages()
-    {
-        $total = PurchaseOrder::count();
+{
+    $total = PurchaseOrder::count();
 
-        if ($total === 0) {
-            return response()->json([
-                'success' => true,
-                'data' => []
-            ]);
-        }
-
-        $statuses = PurchaseOrder::select('status')
-            ->selectRaw('COUNT(*) as count')
-            ->groupBy('status')
-            ->pluck('count', 'status');
-
-        $percentages = [];
-
-        foreach ($statuses as $status => $count) {
-            $percentages[$status] = round(($count / $total) * 100, 2);
-        }
-
+    if ($total === 0) {
         return response()->json([
             'success' => true,
-            'data' => $percentages
+            'data' => []
         ]);
     }
+
+    $statuses = PurchaseOrder::select('status')
+        ->selectRaw('COUNT(*) as count')
+        ->groupBy('status')
+        ->pluck('count', 'status');
+
+    $possibleStatuses = ['pending', 'in_progress', 'complete', 'cancelled'];
+
+    // حساب النسب المئوية
+    $percentages = [];
+
+    // لكل حالة في القائمة الممكنة
+    foreach ($possibleStatuses as $status) {
+        if (isset($statuses[$status])) {
+            $percentages[$status] = round(($statuses[$status] / $total) * 100, 2);
+        } else {
+            $percentages[$status] = 0;
+        }
+    }
+
+    return response()->json([
+        'success' => true,
+        'data' => $percentages
+    ]);
+}
+
 
     public function getTodaysNewData()
     {

@@ -13,9 +13,56 @@ use Illuminate\Support\Facades\Log;
 
 class tempcontroller extends Controller
 {
+    // public function markOrderAsComplete($orderId)
+    // {
+    //     $order = PurchaseOrder::with('customer.user.userFcmTokens')->find($orderId);
+
+    //     if (!$order) {
+    //         return response()->json([
+    //             'message' => 'Order not found'
+    //         ], 404);
+    //     }
+
+    //     $order->update([
+    //         'status' => 'complete'
+    //     ]);
+
+    //     $user = $order->customer->user ?? null;
+
+    //     if ($user && $user->userFcmTokens->count() > 0) {
+    //         try {
+    //             FirebaseNotification::setTitle('Your order is complete 🎉')
+    //                 ->setBody("Your order #{$order->id} has been completed")
+    //                 ->setUsers(collect([$user]))
+    //                 ->setData([
+    //                     'order_id' => $order->id,
+    //                     'status'   => 'complete',
+    //                     'type'     => 'order_completed'
+    //                 ])
+    //                 ->push();
+    //         } catch (\Exception $e) {
+    //             Log::error('Notification failed', [
+    //                 'order_id' => $order->id,
+    //                 'user_id'  => $user->id ?? null,
+    //                 'error'    => $e->getMessage(),
+    //             ]);
+    //         }
+    //     }
+
+    //     return response()->json([
+    //         'message' => 'Order status updated to complete',
+    //         'data' => $order
+    //     ]);
+    // }
     public function markOrderAsComplete($orderId)
     {
-        $order = PurchaseOrder::with('customer.user.userFcmTokens')->find($orderId);
+        $order = PurchaseOrder::with([
+            'customer.user.userFcmTokens',
+            'itemOrders',
+            'roomOrders',
+            'customizationOrders',
+            'roomcustomizationOrders'
+        ])->find($orderId);
 
         if (!$order) {
             return response()->json([
@@ -23,10 +70,27 @@ class tempcontroller extends Controller
             ], 404);
         }
 
+        // تحديث حالة الطلب الرئيسي
         $order->update([
             'status' => 'complete'
         ]);
 
+        // قائمة بكل العلاقات التي تحتوي على طلبات فرعية
+        $relatedOrders = [
+            'itemOrders',
+            'roomOrders',
+            'customizationOrders',
+            'roomcustomizationOrders'
+        ];
+
+        // تحديث حالة جميع الطلبات المرتبطة
+        foreach ($relatedOrders as $relation) {
+            $order->{$relation}->each(function ($relatedOrder) {
+                $relatedOrder->update(['status' => 'complete']);
+            });
+        }
+
+        // إرسال إشعار للزبون إذا كان لديه FCM Token
         $user = $order->customer->user ?? null;
 
         if ($user && $user->userFcmTokens->count() > 0) {
@@ -50,58 +114,175 @@ class tempcontroller extends Controller
         }
 
         return response()->json([
-            'message' => 'Order status updated to complete',
+            'message' => 'Order status updated to complete along with all related orders',
             'data' => $order
         ]);
     }
 
+
     public function showZeroPriceAndTime()
     {
-        $rooms = Room::where('price', 0)
-            ->where('time', 0)
-            ->get();
-
         $items = Item::where('price', 0)
             ->where('time', 0)
+            ->with([
+                'itemDetail' => function ($query) {
+                    $query->with(['wood', 'fabric']);
+                }
+            ])
+            ->get();
+
+        $rooms = Room::where('price', 0)
+            ->where('time', 0)
+            ->with([
+                'roomDetails' => function ($query) {
+                    $query->with(['wood', 'fabric']);
+                }
+            ])
             ->get();
 
         return response()->json([
-            'rooms' => $rooms,
-            'items' => $items,
+            'items' => $items->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'price' => $item->price,
+                    'time' => $item->time,
+                    'wood' => $item->itemDetail->map(function ($itemDetail) {
+                        return [
+                            'wood_type' => $itemDetail->wood->WoodType->name ?? null,
+                            'wood_color' => $itemDetail->wood->WoodColor->name ?? null
+                        ];
+                    }),
+                    'fabric' => $item->itemDetail->map(function ($itemDetail) {
+                        return [
+                            'fabric_type' => $itemDetail->fabric->fabricType->name ?? null,
+                            'fabric_color' => $itemDetail->fabric->fabricColor->name ?? null
+                        ];
+                    })
+                ];
+            }),
+            'rooms' => $rooms->map(function ($room) {
+                // التأكد من أن roomDetails تحتوي على تفاصيل
+                $roomDetail = $room->roomDetails->first(); // اختيار أول تفصيل للخشب والقماش
+
+                return [
+                    'id' => $room->id,
+                    'name' => $room->name,
+                    'price' => $room->price,
+                    'time' => $room->time,
+                    'wood' => $roomDetail ? [
+                        'type' => $roomDetail->wood->WoodType->name ?? null,
+                        'color' => $roomDetail->wood->WoodColor->name ?? null
+                    ] : null,
+                    'fabric' => $roomDetail ? [
+                        'type' => $roomDetail->fabric->fabricType->name ?? null,
+                        'color' => $roomDetail->fabric->fabricColor->name ?? null
+                    ] : null
+                ];
+            })
         ]);
     }
 
+
+    public function showInProgressOrders()
+    {
+        $orders = PurchaseOrder::where('status', 'in_progress')
+            ->with([
+                'item' => function ($query) {
+                    $query->with(['itemDetail' => function ($query) {
+                        $query->with(['wood', 'fabric']);
+                    }]);
+                },
+                'customer',
+                'bill',
+                'report',
+                'roomOrders',
+                'itemOrders',
+                'customizationOrders',
+                'roomcustomizationOrders'
+            ])
+            ->get();
+
+        return response()->json([
+            'orders' => $orders->map(function ($order) {
+                return [
+                    'id' => $order->id,
+                    'status' => $order->status,
+                    'delivery_status' => $order->delivery_status,
+                    'total_price' => $order->total_price,
+                    'delivery_time' => $order->delivery_time,
+                    'address' => $order->address,
+                    'items' => $order->item->map(function ($item) {
+                        return [
+                            'id' => $item->id,
+                            'name' => $item->name,
+                            'price' => $item->price,
+                            'wood' => $item->itemDetail->map(function ($itemDetail) {
+                                return [
+                                    'wood_type' => $itemDetail->wood->WoodType->name ?? null,
+                                    'wood_color' => $itemDetail->wood->WoodColor->name ?? null
+                                ];
+                            }),
+                            'fabric' => $item->itemDetail->map(function ($itemDetail) {
+                                return [
+                                    'fabric_type' => $itemDetail->fabric->fabricType->name ?? null,
+                                    'fabric_color' => $itemDetail->fabric->fabricColor->name ?? null
+                                ];
+                            })
+                        ];
+                    }),
+                    'customer' => $order->customer ? [
+                        'id' => $order->customer->id,
+                        'name' => $order->customer->name ?? null
+                    ] : null,
+                    'bill' => $order->bill ? [
+                        'id' => $order->bill->id,
+                        'amount' => $order->bill->amount ?? null
+                    ] : null,
+                    'report' => $order->report ? [
+                        'id' => $order->report->id,
+                        'details' => $order->report->details ?? null
+                    ] : null
+                ];
+            })
+        ]);
+    }
+
+
+
+
+
     public function updatePriceAndTime(Request $request, $type, $id)
-{
-    if ($type === 'room') {
-        $model = Room::find($id);
-    } elseif ($type === 'item') {
-        $model = Item::find($id);
-    } else {
-        return response()->json(['message' => 'Invalid type'], 400);
+    {
+        if ($type === 'room') {
+            $model = Room::find($id);
+        } elseif ($type === 'item') {
+            $model = Item::find($id);
+        } else {
+            return response()->json(['message' => 'Invalid type'], 400);
+        }
+
+        if (!$model) {
+            return response()->json(['message' => ucfirst($type) . ' not found'], 404);
+        }
+
+        $data = $request->validate([
+            'price' => 'required|numeric|min:0',
+            'time'  => 'required|numeric|min:0',
+        ]);
+
+        $priceWithProfit = $data['price'] * 1.3;
+
+        $model->update([
+            'price' => $priceWithProfit,
+            'time'  => $data['time'],
+        ]);
+
+        return response()->json([
+            'message' => ucfirst($type) . ' updated successfully',
+            $type => $model
+        ]);
     }
-
-    if (!$model) {
-        return response()->json(['message' => ucfirst($type) . ' not found'], 404);
-    }
-
-    $data = $request->validate([
-        'price' => 'required|numeric|min:0',
-        'time'  => 'required|numeric|min:0',
-    ]);
-
-    $priceWithProfit = $data['price'] * 1.3;
-
-    $model->update([
-        'price' => $priceWithProfit,
-        'time'  => $data['time'],
-    ]);
-
-    return response()->json([
-        'message' => ucfirst($type) . ' updated successfully',
-        $type => $model
-    ]);
-}
 
 
     public function updateItemCount(Request $request, $itemId)

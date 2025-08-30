@@ -135,33 +135,77 @@ class DiagramController extends Controller
         return response()->json($data);
     }
 
-    public function getOrdersStatusPercentages()
-    {
-        $total = PurchaseOrder::count();
+//     public function getOrdersStatusPercentages()
+// {
+//     $total = PurchaseOrder::count();
 
-        if ($total === 0) {
-            return response()->json([
-                'success' => true,
-                'data' => []
-            ]);
-        }
+//     // تعريف جميع الحالات الممكنة للطلبات
+//     $allStatuses = ['pending', 'processing', 'complete', 'canceled', 'rejected']; // عدّل حسب الحالات الموجودة عندك
 
-        $statuses = PurchaseOrder::select('status')
-            ->selectRaw('COUNT(*) as count')
-            ->groupBy('status')
-            ->pluck('count', 'status');
+//     // جلب عدد الطلبات لكل حالة موجودة
+//     $statusesCount = PurchaseOrder::select('status')
+//         ->selectRaw('COUNT(*) as count')
+//         ->groupBy('status')
+//         ->pluck('count', 'status');
 
-        $percentages = [];
+//     $percentages = [];
 
-        foreach ($statuses as $status => $count) {
-            $percentages[$status] = round(($count / $total) * 100, 2);
-        }
+//     foreach ($allStatuses as $status) {
+//         $count = $statusesCount->get($status, 0); // إذا الحالة غير موجودة نضع 0
+//         $percentages[$status] = $total > 0 ? round(($count / $total) * 100, 2) : 0;
+//     }
 
+//     return response()->json([
+//         'success' => true,
+//         'data' => $percentages
+//     ]);
+// }
+
+public function getOrdersStatusPercentages()
+{
+    // إجمالي الطلبات
+    $total = PurchaseOrder::count();
+
+    // إذا كانت الإجمالي صفر، إرجاع استجابة فارغة
+    if ($total === 0) {
         return response()->json([
             'success' => true,
-            'data' => $percentages
+            'data' => []
         ]);
     }
+
+    // الحصول على الحالات وعدد الطلبات لكل حالة
+    $statuses = PurchaseOrder::select('status')
+        ->selectRaw('COUNT(*) as count')
+        ->groupBy('status')
+        ->pluck('count', 'status');
+
+    // الحالات الممكنة حسب الـ enum في قاعدة البيانات
+    $possibleStatuses = ['pending', 'in_progress', 'complete', 'cancelled'];
+
+    // حساب النسب المئوية
+    $percentages = [];
+
+    // لكل حالة في القائمة الممكنة
+    foreach ($possibleStatuses as $status) {
+        // إذا كانت الحالة موجودة في الـ statuses، قم بحساب النسبة
+        if (isset($statuses[$status])) {
+            $percentages[$status] = round(($statuses[$status] / $total) * 100, 2);
+        } else {
+            // إذا كانت الحالة غير موجودة، فالنسبة تكون 0
+            $percentages[$status] = 0;
+        }
+    }
+
+    // إرجاع النتيجة
+    return response()->json([
+        'success' => true,
+        'data' => $percentages
+    ]);
+}
+
+
+
 
     public function calculateMonthlyProfit()
     {

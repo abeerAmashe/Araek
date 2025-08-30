@@ -391,8 +391,8 @@ Route::middleware(['auth:sanctum', 'deliveryManager'])->group(function () {
     Route::post('/addAvailableTime', [AvailabilityController::class, 'store']);
     //done
     Route::post('/updateAvailablityTime', [AvailabilityController::class, 'update']);
-
-    Route::get('/getAvailableTime',[AvailabilityController::class,'index']);
+    //done
+    Route::get('/getAvailableTime', [AvailabilityController::class, 'index']);
 });
 
 Route::middleware(['auth:sanctum', 'workshop.manager'])->group(function () {
@@ -406,6 +406,7 @@ Route::middleware(['auth:sanctum', 'workshop.manager'])->group(function () {
     Route::post('/updateItemCount/{itemId}', [tempcontroller::class, 'updateItemCount']);
     //done
     Route::post('/updateRoomCount/{roomId}', [tempcontroller::class, 'updateRoomCount']);
+    Route::get('/showInProgressOrders',[tempcontroller::class,'showInProgressOrders']);
 });
 
 //Ali Mossa:

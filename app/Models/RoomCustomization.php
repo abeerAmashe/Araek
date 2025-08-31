@@ -18,6 +18,8 @@ class RoomCustomization extends Model
         'fabric_color_id',
         'deposite_price',
         'deposite_time',
+        'final_time',
+        'final_price'
     ];
 
     public function room()
